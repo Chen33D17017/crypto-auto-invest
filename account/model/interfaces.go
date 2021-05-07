@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -18,4 +19,9 @@ type UserRepository interface {
 
 type TokenService interface {
 	NewPairFromUser(ctx context.Context, u *User, prevTokenID string) (*TokenPair, error)
+}
+
+type TokenRepository interface {
+	SetRefreshToken(ctx context.Context, userID string, tokenID string, expiresIn time.Duration) error
+	DeleteRefreshToken(ctx context.Context, userID string, prevTokenID string) error
 }

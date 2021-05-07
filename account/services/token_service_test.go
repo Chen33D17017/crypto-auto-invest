@@ -2,13 +2,16 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"account-tutorial/model"
+	"account-tutorial/model/mocks"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
@@ -23,11 +26,11 @@ func TestNewPairFromUser(t *testing.T) {
 	pubKey, _ := jwt.ParseRSAPublicKeyFromPEM(pub)
 	secret := "anotsorandomtestsecret"
 
-	// mockTokenRepository := new(mocks.MockTokenRepository)
+	mockTokenRepository := new(mocks.MockTokenRepository)
 
 	// instantiate a common token service to be used by all tests
 	tokenService := NewTokenService(&TSConfig{
-		// TokenRepository:       mockTokenRepository,
+		TokenRepository:       mockTokenRepository,
 		PrivKey:               privKey,
 		PubKey:                pubKey,
 		RefreshSecret:         secret,
@@ -44,51 +47,47 @@ func TestNewPairFromUser(t *testing.T) {
 		Password: "blarghedymcblarghface",
 	}
 
-	/*
-		// Setup mock call responses in setup before t.Run statements
-		uidErrorCase, _ := uuid.NewRandom()
-		uErrorCase := &model.User{
-			UID:      uidErrorCase,
-			Email:    "failure@failure.com",
-			Password: "blarghedymcblarghface",
-		}
-		prevID := "a_previous_tokenID"
+	// Setup mock call responses in setup before t.Run statements
+	uidErrorCase, _ := uuid.NewRandom()
+	uErrorCase := &model.User{
+		UID:      uidErrorCase,
+		Email:    "failure@failure.com",
+		Password: "blarghedymcblarghface",
+	}
+	prevID := "a_previous_tokenID"
 
-		setSuccessArguments := mock.Arguments{
-			mock.AnythingOfType("*context.emptyCtx"),
-			u.UID.String(),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("time.Duration"),
-		}
+	setSuccessArguments := mock.Arguments{
+		mock.AnythingOfType("*context.emptyCtx"),
+		u.UID.String(),
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("time.Duration"),
+	}
 
-		setErrorArguments := mock.Arguments{
-			mock.AnythingOfType("*context.emptyCtx"),
-			uidErrorCase.String(),
-			mock.AnythingOfType("string"),
-			mock.AnythingOfType("time.Duration"),
-		}
+	setErrorArguments := mock.Arguments{
+		mock.AnythingOfType("*context.emptyCtx"),
+		uidErrorCase.String(),
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("time.Duration"),
+	}
 
-		deleteWithPrevIDArguments := mock.Arguments{
-			mock.AnythingOfType("*context.emptyCtx"),
-			u.UID.String(),
-			prevID,
-		}
+	deleteWithPrevIDArguments := mock.Arguments{
+		mock.AnythingOfType("*context.emptyCtx"),
+		u.UID.String(),
+		prevID,
+	}
 
-		// mock call argument/responses
-		mockTokenRepository.On("SetRefreshToken", setSuccessArguments...).Return(nil)
-		mockTokenRepository.On("SetRefreshToken", setErrorArguments...).Return(fmt.Errorf("Error setting refresh token"))
-		mockTokenRepository.On("DeleteRefreshToken", deleteWithPrevIDArguments...).Return(nil)
-	*/
+	// mock call argument/responses
+	mockTokenRepository.On("SetRefreshToken", setSuccessArguments...).Return(nil)
+	mockTokenRepository.On("SetRefreshToken", setErrorArguments...).Return(fmt.Errorf("Error setting refresh token"))
+	mockTokenRepository.On("DeleteRefreshToken", deleteWithPrevIDArguments...).Return(nil)
 
 	t.Run("Returns a token pair with proper values", func(t *testing.T) {
-		ctx := context.TODO()
-		// ctx := context.Background()                                    // updated from context.TODO()
-		// tokenPair, err := tokenService.NewPairFromUser(ctx, u, prevID) // replaced "" with prevID from setup
-		tokenPair, err := tokenService.NewPairFromUser(ctx, u, "") // replaced "" with prevID from setup
+		ctx := context.Background() // updated from context.TODO()
+		tokenPair, err := tokenService.NewPairFromUser(ctx, u, prevID) // replaced "" with prevID from setup
 		assert.NoError(t, err)
 
-		// mockTokenRepository.AssertCalled(t, "SetRefreshToken", setSuccessArguments...)
-		//mockTokenRepository.AssertCalled(t, "DeleteRefreshToken", deleteWithPrevIDArguments...)
+		mockTokenRepository.AssertCalled(t, "SetRefreshToken", setSuccessArguments...)
+		mockTokenRepository.AssertCalled(t, "DeleteRefreshToken", deleteWithPrevIDArguments...)
 
 		var s string
 		assert.IsType(t, s, tokenPair.IDToken)
@@ -142,4 +141,21 @@ func TestNewPairFromUser(t *testing.T) {
 		assert.WithinDuration(t, expectedExpiresAt, expiresAt, 5*time.Second)
 	})
 
+	t.Run("Error setting refresh token", func(t *testing.T){
+		ctx := context.Background()
+		_, err := tokenService.NewPairFromUser(ctx, uErrorCase, "")
+		assert.Error(t, err)
+
+		mockTokenRepository.AssertCalled(t, "SetRefreshToken", setErrorArguments...)
+		mockTokenRepository.AssertNotCalled(t, "DeleteRefreshToken")
+	})
+
+	t.Run("Empty string provided for prevID", func(t *testing.T){
+		ctx := context.Background()
+		_, err := tokenService.NewPairFromUser(ctx, u, "")
+		assert.NoError(t, err)
+
+		mockTokenRepository.AssertCalled(t, "SetRefreshToken", setSuccessArguments...)
+		mockTokenRepository.AssertNotCalled(t, "DeleteRefreshToken")
+	})
 }

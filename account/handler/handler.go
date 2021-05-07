@@ -3,7 +3,6 @@ package handler
 import (
 	"account-tutorial/model"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,19 +13,18 @@ type Handler struct {
 }
 
 type Config struct {
-	R           *gin.Engine
-	UserService model.UserService
+	R            *gin.Engine
+	UserService  model.UserService
 	TokenService model.TokenService
-	BaseURL string
+	BaseURL      string
 }
 
 func NewHandler(c *Config) {
 	h := &Handler{
-		UserService: c.UserService,
+		UserService:  c.UserService,
 		TokenService: c.TokenService,
 	}
-	g := c.R.Group(os.Getenv(c.BaseURL))
-
+	g := c.R.Group(c.BaseURL)
 	g.GET("/me", h.Me)
 	g.POST("/signup", h.Signup)
 	g.POST("/signin", h.Signin)
