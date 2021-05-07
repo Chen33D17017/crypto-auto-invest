@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -67,28 +68,26 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	refreshSecret := os.Getenv("REFRESH_SECRET")
 
 	// load expiration lengths from env variables and parse as int
-	/*
-		idTokenExp := os.Getenv("ID_TOKEN_EXP")
-		refreshTokenExp := os.Getenv("REFRESH_TOKEN_EXP")
+	idTokenExp := os.Getenv("ID_TOKEN_EXP")
+	refreshTokenExp := os.Getenv("REFRESH_TOKEN_EXP")
 
-		idExp, err := strconv.ParseInt(idTokenExp, 0, 64)
-		if err != nil {
-			return nil, fmt.Errorf("could not parse ID_TOKEN_EXP as int: %w", err)
-		}
+	idExp, err := strconv.ParseInt(idTokenExp, 0, 64)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse ID_TOKEN_EXP as int: %w", err)
+	}
 
-		refreshExp, err := strconv.ParseInt(refreshTokenExp, 0, 64)
-		if err != nil {
-			return nil, fmt.Errorf("could not parse REFRESH_TOKEN_EXP as int: %w", err)
-		}
-	*/
+	refreshExp, err := strconv.ParseInt(refreshTokenExp, 0, 64)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse REFRESH_TOKEN_EXP as int: %w", err)
+	}
 
 	tokenService := services.NewTokenService(&services.TSConfig{
 		// TokenRepository:       tokenRepository,
-		PrivKey:       privKey,
-		PubKey:        pubKey,
-		RefreshSecret: refreshSecret,
-		// IDExpirationSecs:      idExp,
-		// RefreshExpirationSecs: refreshExp,
+		PrivKey:               privKey,
+		PubKey:                pubKey,
+		RefreshSecret:         refreshSecret,
+		IDExpirationSecs:      idExp,
+		RefreshExpirationSecs: refreshExp,
 	})
 
 	// initialize gin.Engine
@@ -96,7 +95,6 @@ func inject(d *dataSources) (*gin.Engine, error) {
 
 	/*
 		// read in ACCOUNT_API_URL
-		baseURL := os.Getenv("ACCOUNT_API_URL")
 
 		// read in HANDLER_TIMEOUT
 		handlerTimeout := os.Getenv("HANDLER_TIMEOUT")
@@ -111,12 +109,13 @@ func inject(d *dataSources) (*gin.Engine, error) {
 			return nil, fmt.Errorf("could not parse MAX_BODY_BYTES as int: %w", err)
 		}
 	*/
+	baseURL := os.Getenv("ACCOUNT_API_URL")
 
 	handler.NewHandler(&handler.Config{
 		R:            router,
 		UserService:  userService,
 		TokenService: tokenService,
-		// BaseURL:         baseURL,
+		BaseURL:      baseURL,
 		// TimeoutDuration: time.Duration(time.Duration(ht) * time.Second),
 		// MaxBodyBytes:    mbb,
 	})

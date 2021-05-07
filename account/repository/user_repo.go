@@ -11,20 +11,20 @@ import (
 	"github.com/lib/pq"
 )
 
-type UserRepository struct {
+type userRepository struct {
 	DB *sqlx.DB
 }
 
 func NewUserRepository(db *sqlx.DB) model.UserRepository {
-	return &UserRepository{
+	return &userRepository{
 		DB: db,
 	}
 }
 
-func (r *UserRepository) Create(ctx context.Context, u *model.User) error {
+func (r *userRepository) Create(ctx context.Context, u *model.User) error {
 	query := "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *"
 
-	if err := r.DB.Get(u, query, u.Email, u.Password); err != nil {
+	if err := r.DB.GetContext(ctx, u, query, u.Email, u.Password); err != nil {
 		if err, ok := err.(*pq.Error); ok && err.Code.Name() == "unique_violation" {
 			log.Printf("Could not create a user with email: %v. Reason: %v\n", u.Email, err.Code.Name())
 			return apperrors.NewConflict("email", u.Email)
@@ -36,7 +36,7 @@ func (r *UserRepository) Create(ctx context.Context, u *model.User) error {
 	return nil
 }
 
-func (r *UserRepository) FindByID(ctx context.Context, uid uuid.UUID) (*model.User, error) {
+func (r *userRepository) FindByID(ctx context.Context, uid uuid.UUID) (*model.User, error) {
 	user := &model.User{}
 
 	query := "SELECT * FROM users WHERE uid=$1"
@@ -49,7 +49,7 @@ func (r *UserRepository) FindByID(ctx context.Context, uid uuid.UUID) (*model.Us
 	return user, nil
 }
 
-func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
+func (r *userRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
 	user := &model.User{}
 
 	query := "SELECT * FROM users WHERE email=$1"
