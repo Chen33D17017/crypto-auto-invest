@@ -8,21 +8,23 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	"account-tutorial/handler"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	// go-clean-arch
 	log.Println("Starting server")
 
-	router := gin.Default()
+	ds, err := initDS()
 
-	handler.NewHandler(&handler.Config{
-		R: router,
-	})
+	if err != nil {
+		log.Fatalf("Unable to initialize data sources: %v\n", err)
+	}
+
+	router, err := inject(ds)
+
+	if err != nil {
+		log.Fatalf("Fail to inject data sources: %v\n", err)
+	}
 
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -44,6 +46,11 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	if err := ds.close(); err != nil {
+		log.Fatalf("A problem occured gracefully shutting down data sources: %v\n", err)
+	}
+
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("Server forced to shutdown:", err)
 	}
