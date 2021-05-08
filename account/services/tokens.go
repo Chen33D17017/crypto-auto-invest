@@ -3,6 +3,7 @@ package services
 import (
 	"account-tutorial/model"
 	"crypto/rsa"
+	"fmt"
 	"log"
 	"time"
 
@@ -52,7 +53,7 @@ type refreshTokenCustomClaims struct {
 func generateRefreshToken(uid uuid.UUID, key string, exp int64) (*refreshTokenData, error) {
 	currentTime := time.Now()
 	tokenExp := currentTime.Add(time.Duration(exp) * time.Second)
-	tokenID, err := uuid.NewRandom() 
+	tokenID, err := uuid.NewRandom()
 
 	if err != nil {
 		log.Println("Failed to generate refresh token ID")
@@ -81,4 +82,29 @@ func generateRefreshToken(uid uuid.UUID, key string, exp int64) (*refreshTokenDa
 		ID:        tokenID,
 		ExpiresIn: tokenExp.Sub(currentTime),
 	}, nil
+}
+
+func validateIDToken(tokenString string, key *rsa.PublicKey) (*IDTokenCustomClaims, error) {
+	claims := &IDTokenCustomClaims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return key, nil
+	})
+
+	// For now we'll just return the error and handle logging in service level
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, fmt.Errorf("ID token is invalid")
+	}
+
+	claims, ok := token.Claims.(*IDTokenCustomClaims)
+
+	if !ok {
+		return nil, fmt.Errorf("ID token valid but couldn't parse claims")
+	}
+
+	return claims, nil
 }
