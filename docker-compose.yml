@@ -29,21 +29,21 @@ services:
       - "6379:6379"
     volumes:
       - "redisdata:/data"
-  account:
+  back-server:
     build:
-      context: ./account
+      context: ./back-server
       target: builder
-    image: account
-    env_file: ./account/.env.dev
+    image: back-server
+    env_file: ./back-server/.env.dev
     expose:
       - "8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.account.rule=Host(`malcorp.test`) && PathPrefix(`/api/account`)"
+      - "traefik.http.routers.back-server.rule=Host(`malcorp.test`) && PathPrefix(`/api/account`)"
     environment: 
       - ENV=dev
     volumes: 
-      - ./account:/go/src/app
+      - ./back-server:/go/src/app
     depends_on:
       - postgres-account
       - redis-account
