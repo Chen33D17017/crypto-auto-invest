@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/go-redis/redis/v8"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -18,17 +19,16 @@ type dataSources struct {
 // InitDS establishes connections to fields in dataSources
 func initDS() (*dataSources, error) {
 	log.Printf("Initializing data sources\n")
-	pgHost := os.Getenv("PG_HOST")
-	pgPort := os.Getenv("PG_PORT")
-	pgUser := os.Getenv("PG_USER")
-	pgPassword := os.Getenv("PG_PASSWORD")
-	pgDB := os.Getenv("PG_DB")
-	pgSSL := os.Getenv("PG_SSL")
+	dbUser := os.Getenv("MYSQL_USER")
+	dbPassword := os.Getenv("MYSQL_PASSWORD")
+	dbPort := os.Getenv("MYSQL_PORT")
+	dbName := os.Getenv("MYSQL_DB")
+	dbHost := os.Getenv("MYSQL_HOST")
 
-	pgConnString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", pgHost, pgPort, pgUser, pgPassword, pgDB, pgSSL)
+	dbConnString := fmt.Sprintf("%s:%s@(%s:%s)/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
 
-	log.Printf("Connecting to Postgresql\n")
-	db, err := sqlx.Open("postgres", pgConnString)
+	log.Printf("Connecting to Mysql\n")
+	db, err := sqlx.Open("mysql", dbConnString)
 
 	if err != nil {
 		return nil, fmt.Errorf("error opening db: %w", err)
