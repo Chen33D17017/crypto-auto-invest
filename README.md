@@ -1,0 +1,1 @@
+This is a simple project which support personal crypto concurrency investment
