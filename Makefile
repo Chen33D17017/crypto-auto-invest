@@ -1,9 +1,9 @@
 .PHONY: keypair migrate-create migrate-up migrate-down migrate-force init
 
 PWD = $(shell pwd)
-ACCTPATH = $(PWD)/account
+APPPATH = back-server
+ACCTPATH = $(PWD)/$(APPPATH)
 PORT = 5432
-APPPATH = account
 
 # Default number of migrations to execute up or down
 N = 1
