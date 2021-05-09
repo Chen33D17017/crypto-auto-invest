@@ -1,4 +1,4 @@
-module account-tutorial
+module crypto-auto-invest
 
 go 1.15
 

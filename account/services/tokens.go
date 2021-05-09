@@ -1,7 +1,7 @@
 package services
 
 import (
-	"account-tutorial/model"
+	"crypto-auto-invest/model"
 	"crypto/rsa"
 	"fmt"
 	"log"

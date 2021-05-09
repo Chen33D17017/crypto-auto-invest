@@ -11,12 +11,14 @@ type UserService interface {
 	Get(ctx context.Context, uid uuid.UUID) (*User, error)
 	Signup(ctx context.Context, u *User) error
 	Signin(ctx context.Context, u *User) error
+	UpdateDetails(ctx context.Context, u *User) error
 }
 
 type UserRepository interface {
 	FindByID(ctx context.Context, uid uuid.UUID) (*User, error)
 	Create(ctx context.Context, u *User) error
 	FindByEmail(ctx context.Context, email string) (*User, error)
+	Update(ctx context.Context, u *User) error
 }
 
 type TokenService interface {

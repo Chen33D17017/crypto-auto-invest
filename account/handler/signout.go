@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"account-tutorial/model"
-	"account-tutorial/model/apperrors"
+	"crypto-auto-invest/model"
+	"crypto-auto-invest/model/apperrors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

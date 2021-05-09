@@ -1,9 +1,9 @@
 package services
 
 import (
-	"account-tutorial/model"
-	"account-tutorial/model/apperrors"
 	"context"
+	"crypto-auto-invest/model"
+	"crypto-auto-invest/model/apperrors"
 	"log"
 
 	"github.com/google/uuid"
@@ -66,5 +66,16 @@ func (s *userService) Signin(ctx context.Context, u *model.User) error {
 
 	// TODO: return email, passwrod instead of change reference
 	*u = *uFetched
+	return nil
+}
+
+func (s *userService) UpdateDetails(ctx context.Context, u *model.User) error {
+	// Update user in UserRepository
+	err := s.UserRepository.Update(ctx, u)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

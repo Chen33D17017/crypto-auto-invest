@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"account-tutorial/model"
-	"account-tutorial/model/mocks"
+	"crypto-auto-invest/model"
+	"crypto-auto-invest/model/mocks"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"

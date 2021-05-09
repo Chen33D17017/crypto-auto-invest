@@ -1,8 +1,8 @@
 package mocks
 
 import (
-	"account-tutorial/model"
 	"context"
+	"crypto-auto-invest/model"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"

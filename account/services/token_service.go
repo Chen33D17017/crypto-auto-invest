@@ -1,9 +1,9 @@
 package services
 
 import (
-	"account-tutorial/model"
-	"account-tutorial/model/apperrors"
 	"context"
+	"crypto-auto-invest/model"
+	"crypto-auto-invest/model/apperrors"
 	"crypto/rsa"
 	"log"
 

@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"account-tutorial/model"
-	"account-tutorial/model/apperrors"
-	"account-tutorial/model/mocks"
 	"bytes"
+	"crypto-auto-invest/model"
+	"crypto-auto-invest/model/apperrors"
+	"crypto-auto-invest/model/mocks"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"account-tutorial/handler"
-	"account-tutorial/repository"
-	"account-tutorial/services"
+	"crypto-auto-invest/handler"
+	"crypto-auto-invest/repository"
+	"crypto-auto-invest/services"
 	"fmt"
 	"io/ioutil"
 	"log"

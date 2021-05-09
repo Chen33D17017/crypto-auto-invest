@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"account-tutorial/model/apperrors"
+	"crypto-auto-invest/model/apperrors"
 	"log"
 	"net/http"
 

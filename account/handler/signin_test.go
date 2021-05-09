@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"account-tutorial/model"
-	"account-tutorial/model/apperrors"
-	"account-tutorial/model/mocks"
+	"crypto-auto-invest/model"
+	"crypto-auto-invest/model/apperrors"
+	"crypto-auto-invest/model/mocks"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"

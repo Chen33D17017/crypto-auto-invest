@@ -3,10 +3,11 @@ package middleware
 import (
 	"strings"
 
+	"crypto-auto-invest/model"
+	"crypto-auto-invest/model/apperrors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"account-tutorial/model"
-	"account-tutorial/model/apperrors"
 )
 
 type authHeader struct {

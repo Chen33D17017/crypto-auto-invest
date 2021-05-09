@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"account-tutorial/model"
-	"account-tutorial/model/apperrors"
+	"crypto-auto-invest/model"
+	"crypto-auto-invest/model/apperrors"
 	"log"
 	"net/http"
 
@@ -46,7 +46,7 @@ func (h *Handler) Signin(c *gin.Context) {
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err,
 		})
-		return 
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{

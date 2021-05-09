@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"account-tutorial/model/apperrors"
 	"bytes"
 	"context"
+	"crypto-auto-invest/model/apperrors"
 	"encoding/json"
 	"fmt"
 	"net/http"
