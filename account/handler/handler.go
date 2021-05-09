@@ -44,11 +44,7 @@ func NewHandler(c *Config) {
 	g.PUT("details", h.Details)
 }
 
-func (h *Handler) Tokens(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "it's token",
-	})
-}
+
 
 func (h *Handler) Image(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{

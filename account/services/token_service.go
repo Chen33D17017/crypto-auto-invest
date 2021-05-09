@@ -6,6 +6,8 @@ import (
 	"context"
 	"crypto/rsa"
 	"log"
+
+	"github.com/google/uuid"
 )
 
 type tokenService struct {
@@ -38,6 +40,13 @@ func NewTokenService(c *TSConfig) model.TokenService {
 }
 
 func (s *tokenService) NewPairFromUser(ctx context.Context, u *model.User, prevTokenID string) (*model.TokenPair, error) {
+
+	if prevTokenID != "" {
+		if err := s.TokenRepository.DeleteRefreshToken(ctx, u.UID.String(), prevTokenID); err != nil {
+			log.Printf("Could not delete previous refreshToken for uid: %v, tokenID: %v\n", u.UID.String(), prevTokenID)
+		}
+	}
+
 	idToken, err := generateIDToken(u, s.PrivKey, s.IDExpirationSecs)
 
 	if err != nil {
@@ -57,15 +66,10 @@ func (s *tokenService) NewPairFromUser(ctx context.Context, u *model.User, prevT
 	}
 
 	// delete user's current refresh token (used when refreshing idToken)
-	if prevTokenID != "" {
-		if err := s.TokenRepository.DeleteRefreshToken(ctx, u.UID.String(), prevTokenID); err != nil {
-			log.Printf("Could not delete previous refreshToken for uid: %v, tokenID: %v\n", u.UID.String(), prevTokenID)
-		}
-	}
 
 	return &model.TokenPair{
-		IDToken:      idToken,
-		RefreshToken: refreshToken.SS,
+		IDToken:      model.IDToken{SS: idToken},
+		RefreshToken: model.RefreshToken{SS: refreshToken.SS, ID: refreshToken.ID, UID: u.UID},
 	}, nil
 }
 
@@ -79,4 +83,26 @@ func (s *tokenService) ValidateIDToken(tokenString string) (*model.User, error) 
 	}
 
 	return claims.User, nil
+}
+
+func (s *tokenService) ValidateRefreshToken(tokenString string) (*model.RefreshToken, error) {
+	claims, err := validateRefreshToken(tokenString, s.RefreshSecret)
+
+	if err != nil {
+		log.Printf("Claims ID could not be parsed as UUID: %s\n%v\n", claims.Id, err)
+		return nil, apperrors.NewAuthorization("Unable to verify user from refresh token")
+	}
+
+	tokenUUID, err := uuid.Parse(claims.Id)
+
+	if err != nil {
+		log.Printf("Claims ID could not be parsed as UUID: %s\n%v\n", claims.Id, err)
+		return nil, apperrors.NewAuthorization("Unable to verify user from refresh token")
+	}
+
+	return &model.RefreshToken{
+		SS:  tokenString,
+		ID:  tokenUUID,
+		UID: claims.UID,
+	}, nil
 }

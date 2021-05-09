@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type IDTokenCustomClaims struct {
+type idTokenCustomClaims struct {
 	User *model.User `json:"user"`
 	jwt.StandardClaims
 }
@@ -20,7 +20,7 @@ func generateIDToken(u *model.User, key *rsa.PrivateKey, exp int64) (string, err
 	unixTime := time.Now().Unix()
 	tokenExp := unixTime + exp
 
-	claims := IDTokenCustomClaims{
+	claims := idTokenCustomClaims{
 		User: u,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  unixTime,
@@ -84,8 +84,8 @@ func generateRefreshToken(uid uuid.UUID, key string, exp int64) (*refreshTokenDa
 	}, nil
 }
 
-func validateIDToken(tokenString string, key *rsa.PublicKey) (*IDTokenCustomClaims, error) {
-	claims := &IDTokenCustomClaims{}
+func validateIDToken(tokenString string, key *rsa.PublicKey) (*idTokenCustomClaims, error) {
+	claims := &idTokenCustomClaims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
@@ -100,10 +100,34 @@ func validateIDToken(tokenString string, key *rsa.PublicKey) (*IDTokenCustomClai
 		return nil, fmt.Errorf("ID token is invalid")
 	}
 
-	claims, ok := token.Claims.(*IDTokenCustomClaims)
+	claims, ok := token.Claims.(*idTokenCustomClaims)
 
 	if !ok {
 		return nil, fmt.Errorf("ID token valid but couldn't parse claims")
+	}
+
+	return claims, nil
+}
+
+func validateRefreshToken(tokenString string, key string) (*refreshTokenCustomClaims, error) {
+	claims := &refreshTokenCustomClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(key), nil
+	})
+
+	// For now we'll just return the error and handle logging in service level
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, fmt.Errorf("Refresh token is invalid")
+	}
+
+	claims, ok := token.Claims.(*refreshTokenCustomClaims)
+
+	if !ok {
+		return nil, fmt.Errorf("Refresh token valid but couldn't parse claims")
 	}
 
 	return claims, nil
