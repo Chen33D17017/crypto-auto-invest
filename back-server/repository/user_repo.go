@@ -30,9 +30,10 @@ func (r *userRepository) Create(ctx context.Context, u *model.User) error {
 	// https://dev.mysql.com/doc/mysql-errors/8.0/en/server-error-reference.html
 	// https://github.com/VividCortex/mysqlerr
 
-	if err := r.DB.GetContext(ctx, u, query, u.Email, u.Password); err != nil {
-		
-		if err, ok := err.(*mysql.MySQLError); ok && err.Message == "ER_DUP_ENTRY" {
+	_, err := r.DB.ExecContext(ctx, query, u.Email, u.Password)
+	if err != nil {
+		log.Println(err)
+		if err, ok := err.(*mysql.MySQLError); ok && err.Number == 1062{
 			log.Printf("Could not create a user with email: %v. Reason: %v\n", u.Email, err.Message)
 			return apperrors.NewConflict("email", u.Email)
 		}
