@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto-auto-invest/model"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -64,7 +63,7 @@ func (m *MockTokenService) ValidateRefreshToken(refreshTokenString string) (*mod
 	return r0, r1
 }
 
-func (m *MockTokenService) Signout(ctx context.Context, uid uuid.UUID) error {
+func (m *MockTokenService) Signout(ctx context.Context, uid string) error {
 	ret := m.Called(ctx, uid)
 	var r0 error
 

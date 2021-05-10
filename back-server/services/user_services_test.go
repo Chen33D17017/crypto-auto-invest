@@ -18,7 +18,7 @@ func TestGet(t *testing.T) {
 		uid, _ := uuid.NewRandom()
 
 		mockUserResp := &model.User{
-			UID:   uid,
+			UID:   uid.String(),
 			Email: "bob@bob.com",
 			Name:  "Bobby Bobson",
 		}
@@ -27,10 +27,10 @@ func TestGet(t *testing.T) {
 		us := NewUserService(&USConfig{
 			UserRepository: mockUserRepository,
 		})
-		mockUserRepository.On("FindByID", mock.Anything, uid).Return(mockUserResp, nil)
+		mockUserRepository.On("FindByID", mock.Anything, uid.String()).Return(mockUserResp, nil)
 
 		ctx := context.TODO()
-		u, err := us.Get(ctx, uid)
+		u, err := us.Get(ctx, uid.String())
 
 		assert.NoError(t, err)
 		assert.Equal(t, u, mockUserResp)
@@ -45,10 +45,10 @@ func TestGet(t *testing.T) {
 			UserRepository: mockUserRepository,
 		})
 
-		mockUserRepository.On("FindByID", mock.Anything, uid).Return(nil, fmt.Errorf("Some error down the call chain"))
+		mockUserRepository.On("FindByID", mock.Anything, uid.String()).Return(nil, fmt.Errorf("Some error down the call chain"))
 
 		ctx := context.TODO()
-		u, err := us.Get(ctx, uid)
+		u, err := us.Get(ctx, uid.String())
 
 		assert.Nil(t, u)
 		assert.Error(t, err)
@@ -76,7 +76,7 @@ func TestSignup(t *testing.T) {
 			On("Create", mock.AnythingOfType("*context.emptyCtx"), mockUser).
 			Run(func(args mock.Arguments) {
 				userArg := args.Get(1).(*model.User) // arg 0 is context, arg 1 is *User
-				userArg.UID = uid
+				userArg.UID = uid.String()
 			}).Return(nil)
 
 		ctx := context.TODO()
@@ -85,7 +85,7 @@ func TestSignup(t *testing.T) {
 		assert.NoError(t, err)
 
 		// assert user now has a userID
-		assert.Equal(t, uid, mockUser.UID)
+		assert.Equal(t, uid.String(), mockUser.UID)
 
 		mockUserRepository.AssertExpectations(t)
 	})
@@ -129,7 +129,7 @@ func TestUpdateDetails(t *testing.T) {
 		uid, _ := uuid.NewRandom()
 
 		mockUser := &model.User{
-			UID:     uid,
+			UID:     uid.String(),
 			Email:   "new@bob.com",
 			Website: "https://jacobgoodwin.me",
 			Name:    "A New Bob!",
@@ -154,7 +154,7 @@ func TestUpdateDetails(t *testing.T) {
 		uid, _ := uuid.NewRandom()
 
 		mockUser := &model.User{
-			UID: uid,
+			UID: uid.String(),
 		}
 
 		mockArgs := mock.Arguments{

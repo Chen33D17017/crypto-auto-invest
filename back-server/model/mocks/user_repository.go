@@ -5,7 +5,6 @@ import (
 
 	"crypto-auto-invest/model"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -15,7 +14,7 @@ type MockUserRepository struct {
 }
 
 // FindByID is mock of UserRepository FindByID
-func (m *MockUserRepository) FindByID(ctx context.Context, uid uuid.UUID) (*model.User, error) {
+func (m *MockUserRepository) FindByID(ctx context.Context, uid string) (*model.User, error) {
 	ret := m.Called(ctx, uid)
 
 	var r0 *model.User

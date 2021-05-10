@@ -7,7 +7,6 @@ import (
 	"log"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -33,7 +32,7 @@ func (r *userRepository) Create(ctx context.Context, u *model.User) error {
 	_, err := r.DB.ExecContext(ctx, query, u.Email, u.Password)
 	if err != nil {
 		log.Println(err)
-		if err, ok := err.(*mysql.MySQLError); ok && err.Number == 1062{
+		if err, ok := err.(*mysql.MySQLError); ok && err.Number == 1062 {
 			log.Printf("Could not create a user with email: %v. Reason: %v\n", u.Email, err.Message)
 			return apperrors.NewConflict("email", u.Email)
 		}
@@ -44,14 +43,14 @@ func (r *userRepository) Create(ctx context.Context, u *model.User) error {
 	return nil
 }
 
-func (r *userRepository) FindByID(ctx context.Context, uid uuid.UUID) (*model.User, error) {
+func (r *userRepository) FindByID(ctx context.Context, uid string) (*model.User, error) {
 	user := &model.User{}
 
 	query := "SELECT * FROM users WHERE uid=?"
 
 	// we need to actually check errors as it could be something other than not found
-	if err := r.DB.GetContext(ctx, user, query, uid); err != nil {
-		return user, apperrors.NewNotFound("uid", uid.String())
+	if err := r.DB.Get(user, query, uid); err != nil {
+		return user, apperrors.NewNotFound("uid", uid)
 	}
 
 	return user, nil

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto-auto-invest/model"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -12,7 +11,7 @@ type MockUserService struct {
 	mock.Mock
 }
 
-func (m *MockUserService) Get(ctx context.Context, uid uuid.UUID) (*model.User, error) {
+func (m *MockUserService) Get(ctx context.Context, uid string) (*model.User, error) {
 	// args that will be passed to "Return" in the tests, when function
 	// is called with a uid. Hence the name "ret"
 	ret := m.Called(ctx, uid)

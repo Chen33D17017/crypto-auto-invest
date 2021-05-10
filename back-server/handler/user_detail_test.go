@@ -22,7 +22,7 @@ func TestDetails(t *testing.T) {
 
 	uid, _ := uuid.NewRandom()
 	ctxUser := &model.User{
-		UID: uid,
+		UID: uid.String(),
 	}
 
 	router := gin.Default()
