@@ -10,6 +10,7 @@ type UserService interface {
 	Signup(ctx context.Context, u *User) error
 	Signin(ctx context.Context, u *User) error
 	UpdateDetails(ctx context.Context, u *User) error
+	PatchDetails(ctx context.Context, u *User) (*User, error)
 }
 
 type UserRepository interface {
@@ -17,6 +18,7 @@ type UserRepository interface {
 	Create(ctx context.Context, u *User) error
 	FindByEmail(ctx context.Context, email string) (*User, error)
 	Update(ctx context.Context, u *User) error
+	Patch(ctx context.Context, u *User) error
 }
 
 type TokenService interface {

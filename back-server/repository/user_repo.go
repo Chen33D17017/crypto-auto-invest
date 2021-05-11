@@ -10,6 +10,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+const (
+	queryGetUser    = "SELECT * FROM users WHERE uid=?;"
+	queryUpdateUser = "UPDATE users SET name=:name, email=:email, api_key=:api_key, api_secret=:api_secret WHERE uid=:uid;"
+)
+
 type userRepository struct {
 	DB *sqlx.DB
 }
@@ -70,24 +75,42 @@ func (r *userRepository) FindByEmail(ctx context.Context, email string) (*model.
 }
 
 func (r *userRepository) Update(ctx context.Context, u *model.User) error {
-	updateQuery := `
-	UPDATE users 
-	SET 
-		name=:name, 
-		email=:email
-	WHERE
-		uid=:uid;
-	`
 
-	if _, err := r.DB.NamedExecContext(ctx, updateQuery, u); err != nil {
+	stmt, err := r.DB.PrepareNamedContext(ctx, queryUpdateUser)
+	if err != nil {
+		log.Printf("Unable to prepare user update query: %v\n", err)
+		return apperrors.NewInternal()
+	}
+
+	if _, err := stmt.ExecContext(ctx, u); err != nil {
+		log.Println(err)
 		log.Printf("REPOSITORY: Failed to update details for user: %v\n", u)
 		return apperrors.NewInternal()
 	}
+	return nil
+}
 
-	if _, err := r.FindByID(ctx, u.UID); err != nil {
-		log.Printf("REPOSITORY: Failed to get update details for user: %v\n", u)
-		return apperrors.NewInternal()
+func (r *userRepository) Patch(ctx context.Context, u *model.User) error {
+	target, err := r.FindByID(ctx, u.UID)
+	if err != nil {
+		return err
+	}
+	if u.Name != "" {
+		target.Name = u.Name
+	}
+	if u.Email != "" {
+		target.Email = u.Email
+	}
+	if u.ApiKey != "" {
+		target.ApiKey = u.ApiKey
+	}
+	if u.ApiSecret != "" {
+		target.ApiSecret = u.ApiSecret
 	}
 
+	err = r.Update(ctx, target)
+	if err != nil {
+		return err
+	}
 	return nil
 }

@@ -35,10 +35,12 @@ func NewHandler(c *Config) {
 		g.GET("/me", middleware.AuthUser(h.TokenService), h.Me)
 		g.POST("/signout", middleware.AuthUser(h.TokenService), h.Signout)
 		g.PUT("/details", middleware.AuthUser(h.TokenService), h.UserDetails)
+		g.PATCH("/details", middleware.AuthUser(h.TokenService), h.PatchUser)
 	} else {
 		g.GET("/me", h.Me)
 		g.POST("/signout", h.Signout)
 		g.PUT("/details", h.UserDetails)
+		g.PATCH("/details", h.PatchUser)
 	}
 	g.POST("/signup", h.Signup)
 	g.POST("/signin", h.Signin)
