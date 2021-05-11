@@ -68,7 +68,6 @@ func (s *userService) Signin(ctx context.Context, u *model.User) error {
 }
 
 func (s *userService) UpdateDetails(ctx context.Context, u *model.User) error {
-	// Update user in UserRepository
 	err := s.UserRepository.Update(ctx, u)
 
 	if err != nil {
@@ -76,4 +75,13 @@ func (s *userService) UpdateDetails(ctx context.Context, u *model.User) error {
 	}
 
 	return nil
+}
+
+func (s *userService) PatchDetails(ctx context.Context, u *model.User) (*model.User, error) {
+	err := s.UserRepository.Patch(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.UserRepository.FindByID(ctx, u.UID)
 }
