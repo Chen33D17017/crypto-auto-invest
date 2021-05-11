@@ -108,14 +108,12 @@ func TestNewPairFromUser(t *testing.T) {
 			u.Email,
 			u.Name,
 			//u.ImageURL,
-			u.Website,
 		}
 		actualIDClaims := []interface{}{
 			idTokenClaims.User.UID,
 			idTokenClaims.User.Email,
 			idTokenClaims.User.Name,
 			//idTokenClaims.User.ImageURL,
-			idTokenClaims.User.Website,
 		}
 
 		assert.ElementsMatch(t, expectedClaims, actualIDClaims)

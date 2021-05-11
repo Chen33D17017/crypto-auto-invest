@@ -30,7 +30,6 @@ func (h *Handler) UserDetails(c *gin.Context) {
 		UID:     authUser.UID,
 		Name:    req.Name,
 		Email:   req.Email,
-		Website: req.Website,
 	}
 
 	ctx := c.Request.Context()

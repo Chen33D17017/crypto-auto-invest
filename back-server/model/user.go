@@ -6,5 +6,4 @@ type User struct {
 	Password string `db:"password" json:"-"`
 	Name     string `db:"name" json:"name"`
 	ImageURL string `db:"image_url" json:"imageUrl"`
-	Website  string `db:"website" json:"website"`
 }

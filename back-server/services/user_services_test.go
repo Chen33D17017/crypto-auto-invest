@@ -129,10 +129,9 @@ func TestUpdateDetails(t *testing.T) {
 		uid, _ := uuid.NewRandom()
 
 		mockUser := &model.User{
-			UID:     uid.String(),
-			Email:   "new@bob.com",
-			Website: "https://jacobgoodwin.me",
-			Name:    "A New Bob!",
+			UID:   uid.String(),
+			Email: "new@bob.com",
+			Name:  "A New Bob!",
 		}
 
 		mockArgs := mock.Arguments{
