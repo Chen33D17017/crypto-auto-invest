@@ -24,18 +24,6 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_USER=user
       - MYSQL_PASSWORD=password
-  postgres-account:
-    image: "postgres:alpine"
-    environment:
-      - POSTGRES_PASSWORD=password
-    ports:
-      - "5432:5432"
-    #   Set a volume for data and initial sql script
-    #   May configure initial db for future demo
-    volumes:
-      - "pgdata_account:/var/lib/postgresql/data"
-      # - ./init:/docker-entrypoint-initdb.d/
-    command: ["postgres", "-c", "log_statement=all"]
   redis-account:
     image: "redis:alpine"
     ports:
@@ -58,11 +46,9 @@ services:
     volumes: 
       - ./back-server:/go/src/app
     depends_on:
-      - postgres-account
       - redis-account
       - service-db
     command: reflex -r "\.go$$" -s -- sh -c "go run ./"
 volumes:
-  pgdata_account:
   redisdata:
   

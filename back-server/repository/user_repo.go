@@ -70,25 +70,22 @@ func (r *userRepository) FindByEmail(ctx context.Context, email string) (*model.
 }
 
 func (r *userRepository) Update(ctx context.Context, u *model.User) error {
-	query := `
+	updateQuery := `
 	UPDATE users 
 	SET 
 		name=:name, 
-		email=:email, 
-		website=:website
+		email=:email
 	WHERE
 		uid=:uid;
 	`
 
-	nstmt, err := r.DB.PrepareNamedContext(ctx, query)
-
-	if err != nil {
-		log.Printf("Unable to prepare user update query: %v\n", err)
+	if _, err := r.DB.NamedExecContext(ctx, updateQuery, u); err != nil {
+		log.Printf("REPOSITORY: Failed to update details for user: %v\n", u)
 		return apperrors.NewInternal()
 	}
 
-	if err := nstmt.GetContext(ctx, u, u); err != nil {
-		log.Printf("Failed to update details for user: %v\n", u)
+	if _, err := r.FindByID(ctx, u.UID); err != nil {
+		log.Printf("REPOSITORY: Failed to get update details for user: %v\n", u)
 		return apperrors.NewInternal()
 	}
 
