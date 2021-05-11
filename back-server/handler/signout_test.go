@@ -22,7 +22,7 @@ func TestSignout(t *testing.T) {
 		uid, _ := uuid.NewRandom()
 
 		ctxUser := &model.User{
-			UID:   uid,
+			UID:   uid.String(),
 			Email: "bob1@bob.com",
 		}
 
@@ -58,7 +58,7 @@ func TestSignout(t *testing.T) {
 		uid, _ := uuid.NewRandom()
 
 		ctxUser := &model.User{
-			UID:   uid,
+			UID:   uid.String(),
 			Email: "bob2@bob.com",
 		}
 

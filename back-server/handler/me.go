@@ -27,7 +27,7 @@ func (h *Handler) Me(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("Unable to find user: %v\n%v\n", uid, err)
-		e := apperrors.NewNotFound("user", uid.String())
+		e := apperrors.NewNotFound("user", uid)
 		c.JSON(e.Status(), gin.H{
 			"error": e,
 		})

@@ -22,7 +22,7 @@ func TestDetails(t *testing.T) {
 
 	uid, _ := uuid.NewRandom()
 	ctxUser := &model.User{
-		UID: uid,
+		UID: uid.String(),
 	}
 
 	router := gin.Default()
@@ -55,9 +55,9 @@ func TestDetails(t *testing.T) {
 	t.Run("Update success", func(t *testing.T) {
 		rr := httptest.NewRecorder()
 
-		newName := "Jacob"
-		newEmail := "jacob@jacob.com"
-		newWebsite := "https://jacobgoodwin.me"
+		newName := "testUser"
+		newEmail := "test@gmail.com"
+		newWebsite := "https://testUser.me"
 
 		reqBody, _ := json.Marshal(gin.H{
 			"name":    newName,
@@ -69,10 +69,9 @@ func TestDetails(t *testing.T) {
 		request.Header.Set("Content-Type", "application/json")
 
 		userToUpdate := &model.User{
-			UID:     ctxUser.UID,
-			Name:    newName,
-			Email:   newEmail,
-			Website: newWebsite,
+			UID:   ctxUser.UID,
+			Name:  newName,
+			Email: newEmail,
 		}
 
 		updateArgs := mock.Arguments{
@@ -119,10 +118,9 @@ func TestDetails(t *testing.T) {
 		request.Header.Set("Content-Type", "application/json")
 
 		userToUpdate := &model.User{
-			UID:     ctxUser.UID,
-			Name:    newName,
-			Email:   newEmail,
-			Website: newWebsite,
+			UID:   ctxUser.UID,
+			Name:  newName,
+			Email: newEmail,
 		}
 
 		updateArgs := mock.Arguments{

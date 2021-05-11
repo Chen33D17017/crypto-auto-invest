@@ -24,13 +24,13 @@ func TestMe(t *testing.T) {
 		uid, _ := uuid.NewRandom()
 
 		mockUserResp := &model.User{
-			UID:   uid,
+			UID:   uid.String(),
 			Email: "bob@bob.com",
 			Name:  "Bobby Bobson",
 		}
 
 		mockUserService := new(mocks.MockUserService)
-		mockUserService.On("Get", mock.AnythingOfType("*context.emptyCtx"), uid).Return(mockUserResp, nil)
+		mockUserService.On("Get", mock.AnythingOfType("*context.emptyCtx"), uid.String()).Return(mockUserResp, nil)
 
 		// a response recorder for getting written http response
 		rr := httptest.NewRecorder()
@@ -41,7 +41,7 @@ func TestMe(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
 			c.Set("user", &model.User{
-				UID: uid,
+				UID: uid.String(),
 			},
 			)
 		})
@@ -92,7 +92,7 @@ func TestMe(t *testing.T) {
 	t.Run("NotFound", func(t *testing.T) {
 		uid, _ := uuid.NewRandom()
 		mockUserService := new(mocks.MockUserService)
-		mockUserService.On("Get", mock.Anything, uid).Return(nil, fmt.Errorf("Some error down call chain"))
+		mockUserService.On("Get", mock.Anything, uid.String()).Return(nil, fmt.Errorf("Some error down call chain"))
 
 		// a response recorder for getting written http response
 		rr := httptest.NewRecorder()
@@ -100,7 +100,7 @@ func TestMe(t *testing.T) {
 		router := gin.Default()
 		router.Use(func(c *gin.Context) {
 			c.Set("user", &model.User{
-				UID: uid,
+				UID: uid.String(),
 			},
 			)
 		})

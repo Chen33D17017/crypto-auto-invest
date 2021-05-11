@@ -5,8 +5,6 @@ import (
 	"crypto-auto-invest/model"
 	"crypto-auto-invest/model/apperrors"
 	"log"
-
-	"github.com/google/uuid"
 )
 
 type userService struct {
@@ -23,7 +21,7 @@ func NewUserService(c *USConfig) model.UserService {
 	}
 }
 
-func (s *userService) Get(ctx context.Context, uid uuid.UUID) (*model.User, error) {
+func (s *userService) Get(ctx context.Context, uid string) (*model.User, error) {
 	u, err := s.UserRepository.FindByID(ctx, uid)
 	return u, err
 }

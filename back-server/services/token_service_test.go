@@ -42,7 +42,7 @@ func TestNewPairFromUser(t *testing.T) {
 	// since json tag is "-"
 	uid, _ := uuid.NewRandom()
 	u := &model.User{
-		UID:      uid,
+		UID:      uid.String(),
 		Email:    "bob@bob.com",
 		Password: "blarghedymcblarghface",
 	}
@@ -50,7 +50,7 @@ func TestNewPairFromUser(t *testing.T) {
 	// Setup mock call responses in setup before t.Run statements
 	uidErrorCase, _ := uuid.NewRandom()
 	uErrorCase := &model.User{
-		UID:      uidErrorCase,
+		UID:      uidErrorCase.String(),
 		Email:    "failure@failure.com",
 		Password: "blarghedymcblarghface",
 	}
@@ -58,7 +58,7 @@ func TestNewPairFromUser(t *testing.T) {
 
 	setSuccessArguments := mock.Arguments{
 		mock.AnythingOfType("*context.emptyCtx"),
-		u.UID.String(),
+		u.UID,
 		mock.AnythingOfType("string"),
 		mock.AnythingOfType("time.Duration"),
 	}
@@ -72,7 +72,7 @@ func TestNewPairFromUser(t *testing.T) {
 
 	deleteWithPrevIDArguments := mock.Arguments{
 		mock.AnythingOfType("*context.emptyCtx"),
-		u.UID.String(),
+		u.UID,
 		prevID,
 	}
 
@@ -108,14 +108,12 @@ func TestNewPairFromUser(t *testing.T) {
 			u.Email,
 			u.Name,
 			//u.ImageURL,
-			u.Website,
 		}
 		actualIDClaims := []interface{}{
 			idTokenClaims.User.UID,
 			idTokenClaims.User.Email,
 			idTokenClaims.User.Name,
 			//idTokenClaims.User.ImageURL,
-			idTokenClaims.User.Website,
 		}
 
 		assert.ElementsMatch(t, expectedClaims, actualIDClaims)
