@@ -23,12 +23,18 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	 */
 	userRepository := repository.NewUserRepository(d.DB)
 	tokenRepository := repository.NewTokenRepository(d.RedisClient)
+	walletRepository := repository.NewWalletRepository(d.DB)
 
 	/*
 	 * service layer
 	 */
 	userService := services.NewUserService(&services.USConfig{
-		UserRepository: userRepository,
+		UserRepository:   userRepository,
+		WalletRepository: walletRepository,
+	})
+
+	walletService := services.NewWalletService(&services.WAConfig{
+		WalletRepository: walletRepository,
 	})
 
 	// load rsa keys
@@ -100,6 +106,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		R:               router,
 		UserService:     userService,
 		TokenService:    tokenService,
+		WalletService:   walletService,
 		BaseURL:         baseURL,
 		TimeoutDuration: time.Duration(time.Duration(ht) * time.Second),
 	})

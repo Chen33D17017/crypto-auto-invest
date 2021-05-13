@@ -9,3 +9,11 @@ CREATE TABLE IF NOT EXISTS users (
   `api_key` VARCHAR(256) NOT NULL DEFAULT '',
   `api_secret` VARCHAR(256) NOT NULL DEFAULT ''
 );
+
+CREATE TABLE IF NOT EXISTS wallets(
+  `wid` VARCHAR(100) DEFAULT (uuid()) PRIMARY KEY,
+  `uid` VARCHAR(100) NOT NULL,
+  `type` VARCHAR(10) NOT NULL,
+  `amount` FLOAT,
+  UNIQUE (`uid`, `type`)
+);

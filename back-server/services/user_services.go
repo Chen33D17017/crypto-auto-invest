@@ -8,16 +8,19 @@ import (
 )
 
 type userService struct {
-	UserRepository model.UserRepository
+	UserRepository   model.UserRepository
+	WalletRepository model.WalletRepository
 }
 
 type USConfig struct {
-	UserRepository model.UserRepository
+	UserRepository   model.UserRepository
+	WalletRepository model.WalletRepository
 }
 
 func NewUserService(c *USConfig) model.UserService {
 	return &userService{
-		UserRepository: c.UserRepository,
+		UserRepository:   c.UserRepository,
+		WalletRepository: c.WalletRepository,
 	}
 }
 
@@ -37,6 +40,21 @@ func (s *userService) Signup(ctx context.Context, u *model.User) error {
 	u.Password = pw
 
 	if err := s.UserRepository.Create(ctx, u); err != nil {
+		return err
+	}
+
+	target, err := s.UserRepository.FindByEmail(ctx, u.Email)
+
+	// Add jpy, btc, eth automatically
+	if err := s.WalletRepository.AddWallet(ctx, target.UID, "jpy"); err != nil {
+		return err
+	}
+
+	if err := s.WalletRepository.AddWallet(ctx, target.UID, "btc"); err != nil {
+		return err
+	}
+
+	if err := s.WalletRepository.AddWallet(ctx, target.UID, "eth"); err != nil {
 		return err
 	}
 
