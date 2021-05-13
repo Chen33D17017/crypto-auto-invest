@@ -27,6 +27,12 @@ type WalletService interface {
 	ChangeMoney(ctx context.Context, uid string, currencyName string, amount float64) (*Wallet, error)
 }
 
+type TradeService interface {
+	Trade(ctx context.Context, uid string, trade_pair string, from_amount float64, getDelay time.Duration) error
+	SaveTradeFromId(ctx context.Context, uid string, tid string)
+	SaveTrade(ctx context.Context, t *Trade)
+}
+
 type UserRepository interface {
 	FindByID(ctx context.Context, uid string) (*User, error)
 	Create(ctx context.Context, u *User) error
@@ -47,4 +53,12 @@ type WalletRepository interface {
 	GetWellet(ctx context.Context, uid string, currencyType string) (*Wallet, error)
 	GetWallets(ctx context.Context, uid string) (*[]Wallet, error)
 	UpdateAmount(ctx context.Context, wid string, amount float64) error
+}
+
+type TradeRepository interface {
+	SaveTrade(ctx context.Context, t *Trade) error
+}
+
+type bitbankPublicApi interface {
+	getPrice(cryp string) (CryptMsg, error)
 }
