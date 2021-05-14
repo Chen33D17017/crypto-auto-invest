@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	bm "crypto-auto-invest/bitbank/model"
 	"time"
 )
 
@@ -37,6 +38,7 @@ type UserRepository interface {
 	FindByID(ctx context.Context, uid string) (*User, error)
 	Create(ctx context.Context, u *User) error
 	FindByEmail(ctx context.Context, email string) (*User, error)
+	GetSecret(ctx context.Context, uid string) (*bm.Secret, error)
 	Update(ctx context.Context, u *User) error
 	Patch(ctx context.Context, u *User) error
 }
@@ -57,8 +59,4 @@ type WalletRepository interface {
 
 type TradeRepository interface {
 	SaveTrade(ctx context.Context, t *Trade) error
-}
-
-type bitbankPublicApi interface {
-	getPrice(cryp string) (CryptMsg, error)
 }

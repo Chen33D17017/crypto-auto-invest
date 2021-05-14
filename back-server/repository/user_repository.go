@@ -6,6 +6,8 @@ import (
 	"crypto-auto-invest/model/apperrors"
 	"log"
 
+	bm "crypto-auto-invest/bitbank/model"
+
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
@@ -113,4 +115,8 @@ func (r *userRepository) Patch(ctx context.Context, u *model.User) error {
 		return err
 	}
 	return nil
+}
+
+func (r *userRepository) GetSecret(ctx context.Context, uid string) (*bm.Secret, error) {
+	panic("need to be implemented")
 }
