@@ -5,8 +5,6 @@ import (
 
 	"crypto-auto-invest/model"
 
-	bm "crypto-auto-invest/bitbank/model"
-
 	"github.com/stretchr/testify/mock"
 )
 
@@ -80,21 +78,4 @@ func (m *MockUserRepository) Patch(ctx context.Context, u *model.User) error {
 	}
 
 	return r0
-}
-
-func (m *MockUserRepository) GetSecret(ctx context.Context, uid string) (*bm.Secret, error) {
-	ret := m.Called(ctx, uid)
-
-	var r0 *bm.Secret
-	if ret.Get(0) != nil {
-		r0 = ret.Get(0).(*bm.Secret)
-	}
-
-	var r1 error
-
-	if ret.Get(1) != nil {
-		r1 = ret.Get(1).(error)
-	}
-
-	return r0, r1
 }

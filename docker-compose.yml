@@ -40,7 +40,7 @@ services:
       - "8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.back-server.rule=Host(`malcorp.test`) && PathPrefix(`/api/account`)"
+      - "traefik.http.routers.back-server.rule=Host(`malcorp.test`)"
     environment: 
       - ENV=dev
     volumes: 

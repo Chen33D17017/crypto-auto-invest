@@ -31,33 +31,37 @@ func NewHandler(c *Config) {
 		TokenService:  c.TokenService,
 		WalletService: c.WalletService,
 	}
-	g := c.R.Group(c.BaseURL)
+	g_user := c.R.Group(c.BaseURL)
+	g_price := c.R.Group("/api/bitbank")
 
 	if gin.Mode() != gin.TestMode {
-		g.Use(middleware.Timeout(c.TimeoutDuration, apperrors.NewServiceUnavailable()))
-		g.GET("/me", middleware.AuthUser(h.TokenService), h.Me)
-		g.POST("/signout", middleware.AuthUser(h.TokenService), h.Signout)
-		g.PUT("/details", middleware.AuthUser(h.TokenService), h.UserDetails)
-		g.PATCH("/details", middleware.AuthUser(h.TokenService), h.PatchUser)
-		g.GET("/wallet", middleware.AuthUser(h.TokenService), h.GetWallet)
-		g.GET("/wallets", middleware.AuthUser(h.TokenService), h.GetWallets)
-		g.POST("/add_wallet", middleware.AuthUser(h.TokenService), h.AddWallet)
-		g.POST("/charge", middleware.AuthUser(h.TokenService), h.Charge)
+		g_user.Use(middleware.Timeout(c.TimeoutDuration, apperrors.NewServiceUnavailable()))
+
+		g_user.GET("/me", middleware.AuthUser(h.TokenService), h.Me)
+		g_user.POST("/signout", middleware.AuthUser(h.TokenService), h.Signout)
+		g_user.PUT("/details", middleware.AuthUser(h.TokenService), h.UserDetails)
+		g_user.PATCH("/details", middleware.AuthUser(h.TokenService), h.PatchUser)
+		g_user.GET("/wallet", middleware.AuthUser(h.TokenService), h.GetWallet)
+		g_user.GET("/wallets", middleware.AuthUser(h.TokenService), h.GetWallets)
+		g_user.POST("/add_wallet", middleware.AuthUser(h.TokenService), h.AddWallet)
+		g_user.POST("/charge", middleware.AuthUser(h.TokenService), h.Charge)
 	} else {
-		g.GET("/me", h.Me)
-		g.POST("/signout", h.Signout)
-		g.PUT("/details", h.UserDetails)
-		g.PATCH("/details", h.PatchUser)
-		g.GET("/wallet", h.GetWallets)
-		g.GET("/wallets", h.GetWallets)
-		g.POST("/add_wallet", h.AddWallet)
-		g.POST("/charge", h.Charge)
+		g_user.GET("/me", h.Me)
+		g_user.POST("/signout", h.Signout)
+		g_user.PUT("/details", h.UserDetails)
+		g_user.PATCH("/details", h.PatchUser)
+		g_user.GET("/wallet", h.GetWallets)
+		g_user.GET("/wallets", h.GetWallets)
+		g_user.POST("/add_wallet", h.AddWallet)
+		g_user.POST("/charge", h.Charge)
 	}
-	g.POST("/signup", h.Signup)
-	g.POST("/signin", h.Signin)
-	g.POST("/tokens", h.Tokens)
-	g.POST("/image", h.Image)
-	g.DELETE("/image", h.DeleteImage)
+	g_user.POST("/signup", h.Signup)
+	g_user.POST("/signin", h.Signin)
+	g_user.POST("/tokens", h.Tokens)
+	g_user.POST("/image", h.Image)
+	g_user.DELETE("/image", h.DeleteImage)
+
+	g_price.GET("/price", h.GetPrice)
 }
 
 func (h *Handler) Image(c *gin.Context) {

@@ -6,8 +6,6 @@ import (
 	"crypto-auto-invest/model/apperrors"
 	"log"
 
-	bm "crypto-auto-invest/bitbank/model"
-
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
@@ -15,6 +13,7 @@ import (
 const (
 	queryGetUser    = "SELECT * FROM users WHERE uid=?;"
 	queryUpdateUser = "UPDATE users SET name=:name, email=:email, api_key=:api_key, api_secret=:api_secret WHERE uid=:uid;"
+	queryUserSecret = `SELECT api_key, api_secret FROM users WHERE uid=?`
 )
 
 type userRepository struct {
@@ -117,6 +116,3 @@ func (r *userRepository) Patch(ctx context.Context, u *model.User) error {
 	return nil
 }
 
-func (r *userRepository) GetSecret(ctx context.Context, uid string) (*bm.Secret, error) {
-	panic("need to be implemented")
-}
