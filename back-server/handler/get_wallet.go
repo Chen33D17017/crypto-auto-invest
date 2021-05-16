@@ -58,7 +58,7 @@ func (h *Handler) GetWallet(c *gin.Context) {
 
 	if !ok {
 		log.Printf("Unable to extract currency type")
-		err := apperrors.NewNotFound(uid, "currency type")
+		err := apperrors.NewBadRequest("Need to query withcurrency type")
 		c.JSON(err.Status(), gin.H{
 			"error": err,
 		})

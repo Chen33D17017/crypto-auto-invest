@@ -45,6 +45,11 @@ func NewHandler(c *Config) {
 		g_user.GET("/wallets", middleware.AuthUser(h.TokenService), h.GetWallets)
 		g_user.POST("/add_wallet", middleware.AuthUser(h.TokenService), h.AddWallet)
 		g_user.POST("/charge", middleware.AuthUser(h.TokenService), h.Charge)
+
+		g_price.GET("/assets", middleware.AuthUser(h.TokenService), h.GetAssets)
+		g_price.GET("/trade", middleware.AuthUser(h.TokenService), h.GetTrade)
+		g_price.GET("/historys", middleware.AuthUser(h.TokenService), h.GetHistory)
+		g_price.POST("/trade", middleware.AuthUser(h.TokenService), h.Trade)
 	} else {
 		g_user.GET("/me", h.Me)
 		g_user.POST("/signout", h.Signout)
