@@ -7,9 +7,9 @@ This is a simple project which use to support personal crypto concurrency invest
   - MySQL
 
 ## TODO 
-- [ ] Migration from Postgres to MySQL
-- [ ] Add handler & service for user wallet
+- [x] Migration from Postgres to MySQL
+- [x] Add handler & service for user wallet
 - [ ] cron job for the service
-- [ ] Integration with bitbank
+- [x] Integration with bitbank
 
 ## Other
