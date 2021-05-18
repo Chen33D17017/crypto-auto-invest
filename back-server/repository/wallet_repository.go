@@ -57,7 +57,6 @@ func (r *walletRepository) GetWellet(ctx context.Context, uid string, currencyTy
 		log.Printf("REPOSITORY: Unable to get wallet by (uid, currency): (%v, %v) err: %s", uid, currencyType, err)
 		return rst, err
 	}
-	log.Println(rst)
 	return rst, nil
 }
 
@@ -68,7 +67,6 @@ func (r *walletRepository) GetWallets(ctx context.Context, uid string) (*[]model
 		log.Printf("REPOSITORY: Unable to get wallets by (uid): %v err: %s", uid, err)
 		return rst, err
 	}
-	log.Println(rst)
 	return rst, nil
 }
 

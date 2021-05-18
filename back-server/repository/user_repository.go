@@ -13,6 +13,7 @@ import (
 const (
 	queryGetUser    = "SELECT * FROM users WHERE uid=?;"
 	queryUpdateUser = "UPDATE users SET name=:name, email=:email, api_key=:api_key, api_secret=:api_secret WHERE uid=:uid;"
+	queryUserSecret = `SELECT api_key, api_secret FROM users WHERE uid=?`
 )
 
 type userRepository struct {
@@ -114,3 +115,4 @@ func (r *userRepository) Patch(ctx context.Context, u *model.User) error {
 	}
 	return nil
 }
+

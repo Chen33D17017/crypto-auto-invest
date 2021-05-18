@@ -3,6 +3,8 @@ package model
 import (
 	"context"
 	"time"
+
+	bm "crypto-auto-invest/bitbank/model"
 )
 
 type UserService interface {
@@ -27,6 +29,11 @@ type WalletService interface {
 	ChangeMoney(ctx context.Context, uid string, currencyName string, amount float64) (*Wallet, error)
 }
 
+type TradeService interface {
+	Trade(ctx context.Context, u *User, amount float64, getDelay time.Duration, side, assetType, orderType string) (bm.Order, error)
+	SaveOrder(ctx context.Context, u *User, orderID string, assetType, orderType string) error
+}
+
 type UserRepository interface {
 	FindByID(ctx context.Context, uid string) (*User, error)
 	Create(ctx context.Context, u *User) error
@@ -47,4 +54,8 @@ type WalletRepository interface {
 	GetWellet(ctx context.Context, uid string, currencyType string) (*Wallet, error)
 	GetWallets(ctx context.Context, uid string) (*[]Wallet, error)
 	UpdateAmount(ctx context.Context, wid string, amount float64) error
+}
+
+type TradeRepository interface {
+	SaveOrder(ctx context.Context, t *Order) error
 }
