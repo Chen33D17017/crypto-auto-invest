@@ -3,6 +3,8 @@ package model
 import (
 	"context"
 	"time"
+
+	bm "crypto-auto-invest/bitbank/model"
 )
 
 type UserService interface {
@@ -28,9 +30,8 @@ type WalletService interface {
 }
 
 type TradeService interface {
-	Trade(ctx context.Context, uid string, trade_pair string, from_amount float64, getDelay time.Duration) error
-	SaveTradeFromId(ctx context.Context, uid string, tid string)
-	SaveTrade(ctx context.Context, t *Trade)
+	Trade(ctx context.Context, u *User, amount float64, getDelay time.Duration, side, assetType, orderType string) (bm.Order, error)
+	SaveOrder(ctx context.Context, u *User, orderID string, assetType, orderType string) error
 }
 
 type UserRepository interface {
@@ -56,5 +57,5 @@ type WalletRepository interface {
 }
 
 type TradeRepository interface {
-	SaveTrade(ctx context.Context, t *Trade) error
+	SaveOrder(ctx context.Context, t *Order) error
 }

@@ -20,8 +20,8 @@ import (
 */
 
 const (
-	queryInsertTradeLog = `INSERT INTO trades (tid, uid, from_type, from_amount, to_type, to_amount, timestamp) 
-							VALUES (:tid :?, :?, :?, :?, :?, :?)`
+	queryInsertTradeLog = `INSERT INTO orders (oid, uid, from_wid, from_amount, to_wid, to_amount, timestamp, type) 
+							VALUES (:oid, :uid, :from_wid, :from_amount, :to_wid, :to_amount, :timestamp, :type)`
 )
 
 type tradeRepository struct {
@@ -34,10 +34,10 @@ func NewTradeRepository(db *sqlx.DB) model.TradeRepository {
 	}
 }
 
-func (r *tradeRepository) SaveTrade(ctx context.Context, t *model.Trade) error {
+func (r *tradeRepository) SaveOrder(ctx context.Context, t *model.Order) error {
 	_, err := r.DB.NamedExecContext(ctx, queryInsertTradeLog, *t)
 	if err != nil {
-		log.Printf("RESPOSITORY: Fail to Insert Trade Log: %v, err: %s", t.Tid, err.Error())
+		log.Printf("RESPOSITORY: Fail to Insert Trade Log: %v, err: %s", t.OID, err.Error())
 		return apperrors.NewInternal()
 	}
 	return nil

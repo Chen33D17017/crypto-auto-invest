@@ -14,6 +14,8 @@ type Handler struct {
 	UserService   model.UserService
 	TokenService  model.TokenService
 	WalletService model.WalletService
+	TradeService  model.TradeService
+	Delay         time.Duration
 }
 
 type Config struct {
@@ -21,8 +23,10 @@ type Config struct {
 	UserService     model.UserService
 	TokenService    model.TokenService
 	WalletService   model.WalletService
+	TradeService    model.TradeService
 	BaseURL         string
 	TimeoutDuration time.Duration
+	Delay           time.Duration
 }
 
 func NewHandler(c *Config) {
@@ -30,9 +34,12 @@ func NewHandler(c *Config) {
 		UserService:   c.UserService,
 		TokenService:  c.TokenService,
 		WalletService: c.WalletService,
+		TradeService:  c.TradeService,
+		Delay:         c.Delay,
 	}
 	g_user := c.R.Group(c.BaseURL)
 	g_price := c.R.Group("/api/bitbank")
+	g_crypto := c.R.Group("/api/crypto")
 
 	if gin.Mode() != gin.TestMode {
 		g_user.Use(middleware.Timeout(c.TimeoutDuration, apperrors.NewServiceUnavailable()))
@@ -49,7 +56,9 @@ func NewHandler(c *Config) {
 		g_price.GET("/assets", middleware.AuthUser(h.TokenService), h.GetAssets)
 		g_price.GET("/trade", middleware.AuthUser(h.TokenService), h.GetTrade)
 		g_price.GET("/historys", middleware.AuthUser(h.TokenService), h.GetHistory)
-		g_price.POST("/trade", middleware.AuthUser(h.TokenService), h.Trade)
+
+		g_crypto.POST("/trade", middleware.AuthUser(h.TokenService), h.Trade)
+		g_crypto.POST("/order", middleware.AuthUser(h.TokenService), h.SaveOrder)
 	} else {
 		g_user.GET("/me", h.Me)
 		g_user.POST("/signout", h.Signout)

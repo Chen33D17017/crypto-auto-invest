@@ -18,12 +18,16 @@ CREATE TABLE IF NOT EXISTS wallets(
   UNIQUE (`uid`, `type`)
 );
 
-CREATE TABLE IF NOT EXISTS trades(
-  `tid` VARCHAR(100) NOT NULL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS orders(
+  `oid` VARCHAR(100) NOT NULL PRIMARY KEY,
   `uid` VARCHAR(100) NOT NULL,
   `from_wid` VARCHAR(100) NOT NULL,
   `from_amount` float NOT NULL,
   `to_wid` VARCHAR(100) NOT NULL,
   `to_amount` float NOT NULL,
-  `timestamp` TIMESTAMP NOT NULL
+  `timestamp` TIMESTAMP NOT NULL,
+  `type` VARCHAR(10),
+
+  FOREIGN KEY (`from_wid`) REFERENCES `wallets` (`wid`),
+  FOREIGN KEY (`to_wid`) REFERENCES `wallets` (`wid`)
 )

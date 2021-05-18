@@ -24,6 +24,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	userRepository := repository.NewUserRepository(d.DB)
 	tokenRepository := repository.NewTokenRepository(d.RedisClient)
 	walletRepository := repository.NewWalletRepository(d.DB)
+	tradeRepository := repository.NewTradeRepository(d.DB)
 
 	/*
 	 * service layer
@@ -34,6 +35,11 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	})
 
 	walletService := services.NewWalletService(&services.WAConfig{
+		WalletRepository: walletRepository,
+	})
+
+	tradeService := services.NewTradeService(&services.TSConifg{
+		TradeRepository:  tradeRepository,
 		WalletRepository: walletRepository,
 	})
 
@@ -96,6 +102,9 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	// read in ACCOUNT_API_URL
 	baseURL := os.Getenv("ACCOUNT_API_URL")
 
+	tradeDelay := os.Getenv("DELAY")
+	td, err := strconv.ParseInt(tradeDelay, 0, 64)
+
 	handlerTimeout := os.Getenv("HANDLER_TIMEOUT")
 	ht, err := strconv.ParseInt(handlerTimeout, 0, 64)
 	if err != nil {
@@ -107,7 +116,9 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		UserService:     userService,
 		TokenService:    tokenService,
 		WalletService:   walletService,
+		TradeService:    tradeService,
 		BaseURL:         baseURL,
+		Delay:           time.Duration(time.Duration(td) * time.Second),
 		TimeoutDuration: time.Duration(time.Duration(ht) * time.Second),
 	})
 

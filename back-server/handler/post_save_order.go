@@ -3,21 +3,20 @@ package handler
 import (
 	"crypto-auto-invest/model"
 	"crypto-auto-invest/model/apperrors"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-type tradeReq struct {
-	Type   string  `json:"type" binding:"required"`
-	Amount float64 `json:"amount" binding:"required"`
-	Side   string  `json:"side" binding:"required"`
+type saveOrderReq struct {
+	OrderID int64  `json:"order_id" binding:"required"`
+	Type    string `json:"type" binding:"required"`
 }
 
-func (h *Handler) Trade(c *gin.Context) {
-
-	var req tradeReq
+func (h *Handler) SaveOrder(c *gin.Context) {
+	var req saveOrderReq
 
 	if ok := bindData(c, &req); !ok {
 		return
@@ -33,12 +32,13 @@ func (h *Handler) Trade(c *gin.Context) {
 		return
 	}
 
-	u := user.(*model.User)
 	ctx := c.Request.Context()
 
-	target, err := h.UserService.Get(ctx, u.UID)
+	u, _ := h.UserService.Get(ctx, user.(*model.User).UID)
 
-	rst, err := h.TradeService.Trade(ctx, target, req.Amount, h.Delay, req.Side, req.Type, "fixed")
+	orderID := fmt.Sprintf("%v", req.OrderID)
+	err := h.TradeService.SaveOrder(ctx, u, orderID, req.Type, "fixed")
+
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())
 		c.JSON(err.Status(), gin.H{
@@ -47,7 +47,7 @@ func (h *Handler) Trade(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": rst,
+	c.JSON(http.StatusAccepted, gin.H{
+		"message": "success",
 	})
 }
