@@ -29,6 +29,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	/*
 	 * service layer
 	 */
+
 	userService := services.NewUserService(&services.USConfig{
 		UserRepository:   userRepository,
 		WalletRepository: walletRepository,
@@ -38,9 +39,14 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		WalletRepository: walletRepository,
 	})
 
+	infoWebhook := os.Getenv("INFO_WEBHOOK")
+	errorWebhook := os.Getenv("ERROR_WEBHOOK")
+
 	tradeService := services.NewTradeService(&services.TSConifg{
 		TradeRepository:  tradeRepository,
 		WalletRepository: walletRepository,
+		InfoWebhook:      infoWebhook,
+		ErrorWebhook:     errorWebhook,
 	})
 
 	// load rsa keys
