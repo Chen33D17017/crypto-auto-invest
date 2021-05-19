@@ -25,6 +25,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	tokenRepository := repository.NewTokenRepository(d.RedisClient)
 	walletRepository := repository.NewWalletRepository(d.DB)
 	tradeRepository := repository.NewTradeRepository(d.DB)
+	cronRepository := repository.NewCronRepository(d.DB)
 
 	/*
 	 * service layer
@@ -41,6 +42,10 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	tradeService := services.NewTradeService(&services.TSConifg{
 		TradeRepository:  tradeRepository,
 		WalletRepository: walletRepository,
+	})
+
+	cronService := services.NewCronService(&services.CSConfig{
+		CronRepository: cronRepository,
 	})
 
 	// load rsa keys
@@ -117,6 +122,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		TokenService:    tokenService,
 		WalletService:   walletService,
 		TradeService:    tradeService,
+		CronService:     cronService,
 		BaseURL:         baseURL,
 		Delay:           time.Duration(time.Duration(td) * time.Second),
 		TimeoutDuration: time.Duration(time.Duration(ht) * time.Second),

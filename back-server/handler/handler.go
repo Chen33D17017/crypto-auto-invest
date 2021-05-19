@@ -15,6 +15,7 @@ type Handler struct {
 	TokenService  model.TokenService
 	WalletService model.WalletService
 	TradeService  model.TradeService
+	CronService   model.CronService
 	Delay         time.Duration
 }
 
@@ -24,6 +25,7 @@ type Config struct {
 	TokenService    model.TokenService
 	WalletService   model.WalletService
 	TradeService    model.TradeService
+	CronService     model.CronService
 	BaseURL         string
 	TimeoutDuration time.Duration
 	Delay           time.Duration
@@ -35,6 +37,7 @@ func NewHandler(c *Config) {
 		TokenService:  c.TokenService,
 		WalletService: c.WalletService,
 		TradeService:  c.TradeService,
+		CronService:   c.CronService,
 		Delay:         c.Delay,
 	}
 	g_user := c.R.Group(c.BaseURL)
@@ -52,6 +55,11 @@ func NewHandler(c *Config) {
 		g_user.GET("/wallets", middleware.AuthUser(h.TokenService), h.GetWallets)
 		g_user.POST("/add_wallet", middleware.AuthUser(h.TokenService), h.AddWallet)
 		g_user.POST("/charge", middleware.AuthUser(h.TokenService), h.Charge)
+		g_user.POST("/cron", middleware.AuthUser(h.TokenService), h.AddCron)
+		g_user.GET("/cron", middleware.AuthUser(h.TokenService), h.GetCron)
+		g_user.GET("/crons", middleware.AuthUser(h.TokenService), h.GetCrons)
+		g_user.PUT("/cron", middleware.AuthUser(h.TokenService), h.UpdateCron)
+		g_user.DELETE("/cron", middleware.AuthUser(h.TokenService), h.DeleteCron)
 
 		g_price.GET("/assets", middleware.AuthUser(h.TokenService), h.GetAssets)
 		g_price.GET("/trade", middleware.AuthUser(h.TokenService), h.GetTrade)

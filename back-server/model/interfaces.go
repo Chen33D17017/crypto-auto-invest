@@ -34,6 +34,14 @@ type TradeService interface {
 	SaveOrder(ctx context.Context, u *User, orderID string, assetType, orderType string) error
 }
 
+type CronService interface {
+	AddCron(ctx context.Context, cb *Cron) (*Cron, error)
+	GetCron(ctx context.Context, uid, cronID string) (*Cron, error)
+	GetCrons(ctx context.Context, uid string) (*[]Cron, error)
+	UpdateCron(ctx context.Context, cb *Cron) error
+	DeleteCron(ctx context.Context, uid string, cronID string) error
+}
+
 type UserRepository interface {
 	FindByID(ctx context.Context, uid string) (*User, error)
 	Create(ctx context.Context, u *User) error
@@ -58,4 +66,18 @@ type WalletRepository interface {
 
 type TradeRepository interface {
 	SaveOrder(ctx context.Context, t *Order) error
+}
+
+type CronRepository interface {
+	AddCron(ctx context.Context, cb *Cron) error
+	GetCron(ctx context.Context, uid string, cronID string) (*Cron, error)
+	GetCrons(ctx context.Context, uid string) (*[]Cron, error)
+	UpdateCron(ctx context.Context, cb *Cron) error
+	DeleteCron(ctx context.Context, userID string, cronID string) error
+	GetCronID(ctx context.Context, uid, cryptoType, timePattern string) (string, error)
+}
+
+type CronJobManager interface {
+	SetCronJob(ctx context.Context, CronID, PID string) error
+	DeleteCronJob(ctx context.Context, CronID, PID string) error
 }
