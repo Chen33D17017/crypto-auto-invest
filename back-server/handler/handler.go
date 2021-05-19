@@ -16,7 +16,6 @@ type Handler struct {
 	WalletService model.WalletService
 	TradeService  model.TradeService
 	CronService   model.CronService
-	Delay         time.Duration
 }
 
 type Config struct {
@@ -38,7 +37,6 @@ func NewHandler(c *Config) {
 		WalletService: c.WalletService,
 		TradeService:  c.TradeService,
 		CronService:   c.CronService,
-		Delay:         c.Delay,
 	}
 	g_user := c.R.Group(c.BaseURL)
 	g_price := c.R.Group("/api/bitbank")

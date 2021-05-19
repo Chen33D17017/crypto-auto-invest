@@ -10,12 +10,13 @@ import (
 )
 
 const (
-	queryAddCron    = "INSERT INTO crons(uid, type, amount, time_pattern) VALUES(?, ?, ?, ?);"
-	queryGetCron    = "SELECT * FROM crons WHERE id=? and uid=?;"
-	queryGetCrons   = `SELECT * FROM crons WHERE uid=?;`
-	queryUpdateCron = `UPDATE crons SET amount=?, type=?, time_pattern=? WHERE id=? and uid=?;`
-	queryDeleteCron = `DELETE FROM crons WHERE id=? and uid=?;`
-	queryGetCronID  = `SELECT * FROM crons WHERE uid=? and type=? and time_pattern=?`
+	queryAddCron     = "INSERT INTO crons(uid, type, amount, time_pattern) VALUES(?, ?, ?, ?);"
+	queryGetCron     = "SELECT * FROM crons WHERE id=? and uid=?;"
+	queryGetCrons    = `SELECT * FROM crons WHERE uid=?;`
+	queryUpdateCron  = `UPDATE crons SET amount=?, type=?, time_pattern=? WHERE id=? and uid=?;`
+	queryDeleteCron  = `DELETE FROM crons WHERE id=? and uid=?;`
+	queryGetCronID   = `SELECT * FROM crons WHERE uid=? and type=? and time_pattern=?`
+	queryGetAllCrons = `SELECT * FROM crons`
 )
 
 type cronRepository struct {
@@ -98,4 +99,13 @@ func (r *cronRepository) GetCronID(ctx context.Context, uid, cryptoType, timePat
 		return rst.ID, apperrors.NewInternal()
 	}
 	return rst.ID, nil
+}
+
+func (r *cronRepository) GetAllCrons() (*[]model.Cron, error) {
+	rst := &[]model.Cron{}
+	err := r.DB.Select(rst, queryGetAllCrons)
+	if err != nil {
+		return rst, err
+	}
+	return rst, nil
 }

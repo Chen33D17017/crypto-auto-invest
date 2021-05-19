@@ -38,7 +38,7 @@ func (h *Handler) Trade(c *gin.Context) {
 
 	target, err := h.UserService.Get(ctx, u.UID)
 
-	rst, err := h.TradeService.Trade(ctx, target, req.Amount, h.Delay, req.Side, req.Type, "fixed")
+	rst, err := h.TradeService.Trade(ctx, target, req.Amount, req.Side, req.Type, "fixed")
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())
 		c.JSON(err.Status(), gin.H{
