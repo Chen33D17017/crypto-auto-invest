@@ -130,7 +130,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		return apperrors.NewInternal()
 	}
 	loc := time.FixedZone("UTC+9", 9*60*60)
-	s.SendTradeRst(fmt.Sprintf("%s %s %v(%s, ¥%s) with ¥%v @%v",
+	s.SendTradeRst(fmt.Sprintf("%s %s %v(%s, ¥%s) cost ¥%v @%v",
 		u.Name, o.Side, o.StartAmount, o.Pair, o.AveragePrice, JPY, time.Unix(o.OrderedAt/1000, 0).In(loc).Format(time.RFC822)), "info")
 	return nil
 }
