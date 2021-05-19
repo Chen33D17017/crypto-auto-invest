@@ -33,6 +33,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	/*
 	 * service layer
 	 */
+
 	userService := services.NewUserService(&services.USConfig{
 		UserRepository:   userRepository,
 		WalletRepository: walletRepository,
@@ -44,6 +45,8 @@ func inject(d *dataSources) (*gin.Engine, error) {
 
 	tradeDelay := os.Getenv("DELAY")
 	td, err := strconv.ParseInt(tradeDelay, 0, 64)
+	infoWebhook := os.Getenv("INFO_WEBHOOK")
+	errorWebhook := os.Getenv("ERROR_WEBHOOK")
 
 	tradeService := services.NewTradeService(&services.TSConifg{
 		TradeRepository:  tradeRepository,
