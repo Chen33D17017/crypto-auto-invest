@@ -51,6 +51,8 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	tradeService := services.NewTradeService(&services.TSConifg{
 		TradeRepository:  tradeRepository,
 		WalletRepository: walletRepository,
+		InfoWebhook:      infoWebhook,
+		ErrorWebhook:     errorWebhook,
 		Delay:            time.Duration(time.Duration(td) * time.Second),
 	})
 
