@@ -14,7 +14,9 @@ CREATE TABLE IF NOT EXISTS wallets(
   `wid` VARCHAR(100) DEFAULT (uuid()) PRIMARY KEY,
   `uid` VARCHAR(100) NOT NULL,
   `type` VARCHAR(10) NOT NULL,
-  `amount` FLOAT,
+  `amount` FLOAT NOT NULL,
+
+  FOREIGN KEY (`uid`) REFERENCES `users` (`uid`),
   UNIQUE (`uid`, `type`)
 );
 
@@ -30,4 +32,15 @@ CREATE TABLE IF NOT EXISTS orders(
 
   FOREIGN KEY (`from_wid`) REFERENCES `wallets` (`wid`),
   FOREIGN KEY (`to_wid`) REFERENCES `wallets` (`wid`)
-)
+);
+
+CREATE TABLE IF NOT EXISTS crons(
+  `id` VARCHAR(100) DEFAULT (uuid()) PRIMARY KEY, 
+  `uid` VARCHAR(100) NOT NULL,
+  `type` VARCHAR(10) NOT NULL,
+  `amount` FLOAT NOT NULL,
+  `time_pattern` VARCHAR(100) NOT NULL,
+
+  FOREIGN KEY (`uid`) REFERENCES `users` (`uid`),
+  UNIQUE (`uid`, `type`, `time_pattern`)
+);

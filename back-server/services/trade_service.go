@@ -23,6 +23,7 @@ type DiscordFormat struct {
 type tradeService struct {
 	TradeRepository  model.TradeRepository
 	WalletRepository model.WalletRepository
+	Delay            time.Duration
 	InfoWebhook      string
 	ErrorWebhook     string
 }
@@ -30,6 +31,7 @@ type tradeService struct {
 type TSConifg struct {
 	TradeRepository  model.TradeRepository
 	WalletRepository model.WalletRepository
+	Delay            time.Duration
 	InfoWebhook      string
 	ErrorWebhook     string
 }
@@ -38,12 +40,13 @@ func NewTradeService(c *TSConifg) model.TradeService {
 	return &tradeService{
 		TradeRepository:  c.TradeRepository,
 		WalletRepository: c.WalletRepository,
+		Delay:            c.Delay,
 		InfoWebhook:      c.InfoWebhook,
 		ErrorWebhook:     c.ErrorWebhook,
 	}
 }
 
-func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, getDelay time.Duration, side, assetType, orderType string) (bm.Order, error) {
+func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, side, assetType, orderType string) (bm.Order, error) {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
@@ -63,7 +66,7 @@ func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64,
 		return order, apperrors.NewInternal()
 	}
 
-	time.AfterFunc(getDelay, func() {
+	time.AfterFunc(s.Delay, func() {
 		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), assetType, orderType)
 	})
 	return order, nil

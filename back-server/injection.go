@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto-auto-invest/handler"
 	"crypto-auto-invest/repository"
 	"crypto-auto-invest/services"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 )
 
 func inject(d *dataSources) (*gin.Engine, error) {
@@ -23,8 +25,10 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	 */
 	userRepository := repository.NewUserRepository(d.DB)
 	tokenRepository := repository.NewTokenRepository(d.RedisClient)
+	cronJobManager := repository.NewCronJobManager(d.RedisClient)
 	walletRepository := repository.NewWalletRepository(d.DB)
 	tradeRepository := repository.NewTradeRepository(d.DB)
+	cronRepository := repository.NewCronRepository(d.DB)
 
 	/*
 	 * service layer
@@ -39,15 +43,40 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		WalletRepository: walletRepository,
 	})
 
+	tradeDelay := os.Getenv("DELAY")
+	td, err := strconv.ParseInt(tradeDelay, 0, 64)
 	infoWebhook := os.Getenv("INFO_WEBHOOK")
 	errorWebhook := os.Getenv("ERROR_WEBHOOK")
 
 	tradeService := services.NewTradeService(&services.TSConifg{
 		TradeRepository:  tradeRepository,
 		WalletRepository: walletRepository,
-		InfoWebhook:      infoWebhook,
-		ErrorWebhook:     errorWebhook,
+		Delay:            time.Duration(time.Duration(td) * time.Second),
 	})
+
+	// init cron job manager
+	cron := cron.New()
+
+	cron.Start()
+	cronService := services.NewCronService(&services.CSConfig{
+		CronRepository: cronRepository,
+		TradeService:   tradeService,
+		UserRepository: userRepository,
+		CronJobManager: cronJobManager,
+		Cron:           cron,
+	})
+
+	jobs, err := cronRepository.GetAllCrons()
+
+	if err != nil {
+		log.Fatalf("Fail to init cron job manager: %s\n", err)
+	}
+
+	log.Printf("Setting %v cron jobs for system\n", len(*jobs))
+	for _, job := range *jobs {
+		ctx := context.TODO()
+		cronService.AddCronFunc(ctx, &job)
+	}
 
 	// load rsa keys
 	privKeyFile := os.Getenv("PRIV_KEY_FILE")
@@ -108,9 +137,6 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	// read in ACCOUNT_API_URL
 	baseURL := os.Getenv("ACCOUNT_API_URL")
 
-	tradeDelay := os.Getenv("DELAY")
-	td, err := strconv.ParseInt(tradeDelay, 0, 64)
-
 	handlerTimeout := os.Getenv("HANDLER_TIMEOUT")
 	ht, err := strconv.ParseInt(handlerTimeout, 0, 64)
 	if err != nil {
@@ -123,8 +149,8 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		TokenService:    tokenService,
 		WalletService:   walletService,
 		TradeService:    tradeService,
+		CronService:     cronService,
 		BaseURL:         baseURL,
-		Delay:           time.Duration(time.Duration(td) * time.Second),
 		TimeoutDuration: time.Duration(time.Duration(ht) * time.Second),
 	})
 
