@@ -11,12 +11,12 @@ import (
 
 const (
 	queryAddCron     = "INSERT INTO crons(uid, type, amount, time_pattern) VALUES(?, ?, ?, ?);"
-	queryGetCron     = "SELECT * FROM crons WHERE id=? and uid=?;"
-	queryGetCrons    = `SELECT * FROM crons WHERE uid=?;`
-	queryUpdateCron  = `UPDATE crons SET amount=?, type=?, time_pattern=? WHERE id=? and uid=?;`
+	queryGetCron     = "SELECT * FROM crons_view WHERE id=? and uid=?;"
+	queryGetCrons    = `SELECT * FROM crons_view WHERE uid=?;`
+	queryUpdateCron  = `UPDATE crons_view SET amount=?, type=?, time_pattern=? WHERE id=? and uid=?;`
 	queryDeleteCron  = `DELETE FROM crons WHERE id=? and uid=?;`
-	queryGetCronID   = `SELECT * FROM crons WHERE uid=? and type=? and time_pattern=?`
-	queryGetAllCrons = `SELECT * FROM crons`
+	queryGetCronID   = `SELECT * FROM crons_view WHERE uid=? and type=? and time_pattern=?`
+	queryGetAllCrons = `SELECT * FROM crons_view`
 )
 
 type cronRepository struct {
