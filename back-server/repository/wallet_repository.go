@@ -87,7 +87,7 @@ func (r *walletRepository) UpdateAmount(ctx context.Context, wid string, amount 
 
 func (r *walletRepository) GetCurrencyID(ctx context.Context, currencyName string) (int, error) {
 	var rst int
-	err := r.DB.GetContext(ctx, rst, queryGetCurrencyID)
+	err := r.DB.GetContext(ctx, &rst, queryGetCurrencyID, currencyName)
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to get currency type: %s err: %s\n", currencyName, err.Error())
 		return 0, apperrors.NewNotFound("currency", currencyName)
