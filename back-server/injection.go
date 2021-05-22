@@ -60,11 +60,12 @@ func inject(d *dataSources) (*gin.Engine, error) {
 
 	cron.Start()
 	cronService := services.NewCronService(&services.CSConfig{
-		CronRepository: cronRepository,
-		TradeService:   tradeService,
-		UserRepository: userRepository,
-		CronJobManager: cronJobManager,
-		Cron:           cron,
+		CronRepository:   cronRepository,
+		UserRepository:   userRepository,
+		WalletRepository: walletRepository,
+		TradeService:     tradeService,
+		CronJobManager:   cronJobManager,
+		Cron:             cron,
 	})
 
 	jobs, err := cronRepository.GetAllCrons()

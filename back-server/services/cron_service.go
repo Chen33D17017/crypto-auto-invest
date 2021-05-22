@@ -9,35 +9,39 @@ import (
 
 // https://pkg.go.dev/github.com/robfig/cron/v3@v3.0.0?utm_source=gopls
 type cronService struct {
-	CronRepository model.CronRepository
-	TradeService   model.TradeService
-	UserRepository model.UserRepository
-	CronJobManager model.CronJobManager
-	Cron           *cron.Cron
+	CronRepository   model.CronRepository
+	UserRepository   model.UserRepository
+	WalletRepository model.WalletRepository
+	TradeService     model.TradeService
+	CronJobManager   model.CronJobManager
+	Cron             *cron.Cron
 }
 
 type CSConfig struct {
-	CronRepository model.CronRepository
-	TradeService   model.TradeService
-	UserRepository model.UserRepository
-	CronJobManager model.CronJobManager
-	Cron           *cron.Cron
+	CronRepository   model.CronRepository
+	WalletRepository model.WalletRepository
+	UserRepository   model.UserRepository
+	TradeService     model.TradeService
+	CronJobManager   model.CronJobManager
+	Cron             *cron.Cron
 }
 
 func NewCronService(c *CSConfig) model.CronService {
 	return &cronService{
-		CronRepository: c.CronRepository,
-		TradeService:   c.TradeService,
-		UserRepository: c.UserRepository,
-		CronJobManager: c.CronJobManager,
-		Cron:           c.Cron,
+		CronRepository:   c.CronRepository,
+		UserRepository:   c.UserRepository,
+		WalletRepository: c.WalletRepository,
+		TradeService:     c.TradeService,
+		CronJobManager:   c.CronJobManager,
+		Cron:             c.Cron,
 	}
 }
 
 // https://github.com/robfig/cron/blob/bc59245fe10efaed9d51b56900192527ed733435/cron.go#L50
 // https://pkg.go.dev/github.com/robfig/cron/v3@v3.0.0?utm_source=gopls#EntryID
 func (s *cronService) AddCron(ctx context.Context, cb *model.Cron) (*model.Cron, error) {
-	err := s.CronRepository.AddCron(ctx, cb)
+	currencyID, err := s.WalletRepository.GetCurrencyID(ctx, cb.Type)
+	err = s.CronRepository.AddCron(ctx, cb, currencyID)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +78,8 @@ func (s *cronService) GetCrons(ctx context.Context, uid string) (*[]model.Cron, 
 }
 
 func (s *cronService) UpdateCron(ctx context.Context, cb *model.Cron) error {
-	err := s.CronRepository.UpdateCron(ctx, cb)
+	currencyID, err := s.WalletRepository.GetCurrencyID(ctx, cb.Type)
+	err = s.CronRepository.UpdateCron(ctx, cb, currencyID)
 	if err != nil {
 		return err
 	}

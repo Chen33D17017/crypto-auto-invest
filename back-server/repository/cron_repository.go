@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	queryAddCron     = "INSERT INTO crons(uid, type, amount, time_pattern) VALUES(?, ?, ?, ?);"
+	queryAddCron     = "INSERT INTO crons(uid, type_id, amount, time_pattern) VALUES(?, ?, ?, ?);"
 	queryGetCron     = "SELECT * FROM crons_view WHERE id=? and uid=?;"
 	queryGetCrons    = `SELECT * FROM crons_view WHERE uid=?;`
-	queryUpdateCron  = `UPDATE crons_view SET amount=?, type=?, time_pattern=? WHERE id=? and uid=?;`
+	queryUpdateCron  = `UPDATE crons SET amount=?, type_id=?, time_pattern=? WHERE id=? and uid=?;`
 	queryDeleteCron  = `DELETE FROM crons WHERE id=? and uid=?;`
 	queryGetCronID   = `SELECT * FROM crons_view WHERE uid=? and type=? and time_pattern=?`
 	queryGetAllCrons = `SELECT * FROM crons_view`
@@ -29,14 +29,14 @@ func NewCronRepository(db *sqlx.DB) model.CronRepository {
 	}
 }
 
-func (r *cronRepository) AddCron(ctx context.Context, cb *model.Cron) error {
+func (r *cronRepository) AddCron(ctx context.Context, cb *model.Cron, currencyID int) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryAddCron)
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to Add Cron: %v\n", err)
 		return apperrors.NewInternal()
 	}
 
-	if _, err := stmt.ExecContext(ctx, cb.UID, cb.Type, cb.Amount, cb.TimePattern); err != nil {
+	if _, err := stmt.ExecContext(ctx, cb.UID, currencyID, cb.Amount, cb.TimePattern); err != nil {
 		log.Printf("REPOSITORY: Failed to update details for user: %v err: %s\n", cb.UID, err.Error())
 		return apperrors.NewInternal()
 	}
@@ -63,14 +63,14 @@ func (r *cronRepository) GetCrons(ctx context.Context, uid string) (*[]model.Cro
 	return rst, nil
 }
 
-func (r *cronRepository) UpdateCron(ctx context.Context, cb *model.Cron) error {
+func (r *cronRepository) UpdateCron(ctx context.Context, cb *model.Cron, currencyID int) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryUpdateCron)
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to prepare update query: %v\n", err)
 		return apperrors.NewInternal()
 	}
 
-	if _, err := stmt.ExecContext(ctx, cb.Amount, cb.Type, cb.TimePattern, cb.ID, cb.UID); err != nil {
+	if _, err := stmt.ExecContext(ctx, cb.Amount, currencyID, cb.TimePattern, cb.ID, cb.UID); err != nil {
 		log.Printf("REPOSITORY: Failed to update wallet for wid: %v err: %s\n", cb.ID, err.Error())
 		return apperrors.NewInternal()
 	}

@@ -72,10 +72,10 @@ type TradeRepository interface {
 }
 
 type CronRepository interface {
-	AddCron(ctx context.Context, cb *Cron) error
+	AddCron(ctx context.Context, cb *Cron, currencyID int) error
 	GetCron(ctx context.Context, uid string, cronID string) (*Cron, error)
 	GetCrons(ctx context.Context, uid string) (*[]Cron, error)
-	UpdateCron(ctx context.Context, cb *Cron) error
+	UpdateCron(ctx context.Context, cb *Cron, currencyID int) error
 	DeleteCron(ctx context.Context, userID string, cronID string) error
 	GetCronID(ctx context.Context, uid, cryptoType, timePattern string) (string, error)
 	GetAllCrons() (*[]Cron, error)
