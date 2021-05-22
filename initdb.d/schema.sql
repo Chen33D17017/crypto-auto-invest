@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS currency_type (
   `name` VARCHAR(10) NOT NULL
 );
 
-INSERT INTO `currency_type`(`name`) VALUES("jpy")
+INSERT INTO `currency_type`(`name`) VALUES("jpy");
 INSERT INTO `currency_type`(`name`) VALUES("eth");
 INSERT INTO `currency_type`(`name`) VALUES("btc");
 INSERT INTO `currency_type`(`name`) VALUES("xrp");
