@@ -59,11 +59,12 @@ type TokenRepository interface {
 }
 
 type WalletRepository interface {
-	AddWallet(ctx context.Context, uid string, currencyName string) error
+	AddWallet(ctx context.Context, uid string, cid int) error
 	GetWalletByID(ctx context.Context, wid string) (*Wallet, error)
 	GetWellet(ctx context.Context, uid string, currencyType string) (*Wallet, error)
 	GetWallets(ctx context.Context, uid string) (*[]Wallet, error)
 	UpdateAmount(ctx context.Context, wid string, amount float64) error
+	GetCurrencyID(ctx context.Context, currencyName string) (int, error)
 }
 
 type TradeRepository interface {

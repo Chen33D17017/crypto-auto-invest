@@ -33,14 +33,13 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	/*
 	 * service layer
 	 */
-
-	userService := services.NewUserService(&services.USConfig{
-		UserRepository:   userRepository,
+	walletService := services.NewWalletService(&services.WAConfig{
 		WalletRepository: walletRepository,
 	})
 
-	walletService := services.NewWalletService(&services.WAConfig{
-		WalletRepository: walletRepository,
+	userService := services.NewUserService(&services.USConfig{
+		UserRepository: userRepository,
+		WalletService:  walletService,
 	})
 
 	tradeDelay := os.Getenv("DELAY")

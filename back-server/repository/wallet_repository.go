@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	queryAddWallet     = "INSERT INTO wallets(uid, type, amount) VALUES(?, ?, ?)"
+	queryAddWallet     = "INSERT INTO wallets(uid, type_id, amount) VALUES(?, ?, ?)"
 	queryGetWalletByID = "SELECT * FROM wallets_view WHERE wid=?"
 	queryGetWallet     = `SELECT * FROM wallets_view WHERE uid=? AND type=?`
 	queryGetWallets    = `SELECT * FROM wallets_view WHERE uid=?`
 	queryUpdateAmount  = `UPDATE wallets SET amount=? WHERE wid=?`
-	queryGetCurrencyID = `SELECT id FROM currency_type WHERE`
+	queryGetCurrencyID = `SELECT id FROM currency_type WHERE name=?`
 )
 
 type walletRepository struct {
@@ -27,14 +27,14 @@ func NewWalletRepository(db *sqlx.DB) model.WalletRepository {
 		DB: db,
 	}
 }
-func (r *walletRepository) AddWallet(ctx context.Context, uid string, currencyName string) error {
+func (r *walletRepository) AddWallet(ctx context.Context, uid string, cid int) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryAddWallet)
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to Add Wallet: %v\n", err)
 		return apperrors.NewInternal()
 	}
 
-	if _, err := stmt.ExecContext(ctx, uid, currencyName, 0); err != nil {
+	if _, err := stmt.ExecContext(ctx, uid, cid, 0); err != nil {
 		log.Printf("REPOSITORY: Failed to update details for user: %v err: %s\n", uid, err.Error())
 		return apperrors.NewInternal()
 	}
@@ -85,3 +85,12 @@ func (r *walletRepository) UpdateAmount(ctx context.Context, wid string, amount 
 	return nil
 }
 
+func (r *walletRepository) GetCurrencyID(ctx context.Context, currencyName string) (int, error) {
+	var rst int
+	err := r.DB.GetContext(ctx, rst, queryGetCurrencyID)
+	if err != nil {
+		log.Printf("REPOSITORY: Unable to get currency type: %s err: %s\n", currencyName, err.Error())
+		return 0, apperrors.NewNotFound("currency", currencyName)
+	}
+	return rst, nil
+}

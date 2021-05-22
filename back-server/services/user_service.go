@@ -8,19 +8,19 @@ import (
 )
 
 type userService struct {
-	UserRepository   model.UserRepository
-	WalletRepository model.WalletRepository
+	UserRepository model.UserRepository
+	WalletService  model.WalletService
 }
 
 type USConfig struct {
-	UserRepository   model.UserRepository
-	WalletRepository model.WalletRepository
+	UserRepository model.UserRepository
+	WalletService  model.WalletService
 }
 
 func NewUserService(c *USConfig) model.UserService {
 	return &userService{
-		UserRepository:   c.UserRepository,
-		WalletRepository: c.WalletRepository,
+		UserRepository: c.UserRepository,
+		WalletService:  c.WalletService,
 	}
 }
 
@@ -46,15 +46,15 @@ func (s *userService) Signup(ctx context.Context, u *model.User) error {
 	target, err := s.UserRepository.FindByEmail(ctx, u.Email)
 
 	// Add jpy, btc, eth automatically
-	if err := s.WalletRepository.AddWallet(ctx, target.UID, "jpy"); err != nil {
+	if _, err := s.WalletService.AddWallet(ctx, target.UID, "jpy"); err != nil {
 		return err
 	}
 
-	if err := s.WalletRepository.AddWallet(ctx, target.UID, "btc"); err != nil {
+	if _, err := s.WalletService.AddWallet(ctx, target.UID, "btc"); err != nil {
 		return err
 	}
 
-	if err := s.WalletRepository.AddWallet(ctx, target.UID, "eth"); err != nil {
+	if _, err := s.WalletService.AddWallet(ctx, target.UID, "eth"); err != nil {
 		return err
 	}
 

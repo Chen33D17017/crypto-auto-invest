@@ -21,7 +21,11 @@ func NewWalletService(c *WAConfig) model.WalletService {
 
 func (w *walletService) AddWallet(ctx context.Context, uid string, currencyName string) (*model.Wallet, error) {
 	var rst *model.Wallet
-	err := w.WalletRepository.AddWallet(ctx, uid, currencyName)
+	cid, err := w.WalletRepository.GetCurrencyID(ctx, currencyName)
+	if err != nil {
+		return nil, err
+	}
+	err = w.WalletRepository.AddWallet(ctx, uid, cid)
 	if err != nil {
 		return nil, err
 	}
