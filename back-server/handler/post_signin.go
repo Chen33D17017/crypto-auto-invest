@@ -31,7 +31,6 @@ func (h *Handler) Signin(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("Failed to sign in user: %v\n", err.Error())
-
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err,
 		})

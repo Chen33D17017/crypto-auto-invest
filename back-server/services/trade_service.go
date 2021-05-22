@@ -26,6 +26,8 @@ type tradeService struct {
 	Delay            time.Duration
 	InfoWebhook      string
 	ErrorWebhook     string
+	TradeRateApi     string
+	MaxRate          string
 }
 
 type TSConifg struct {
@@ -34,6 +36,8 @@ type TSConifg struct {
 	Delay            time.Duration
 	InfoWebhook      string
 	ErrorWebhook     string
+	TradeRateApi     string
+	MaxRate          string
 }
 
 func NewTradeService(c *TSConifg) model.TradeService {
@@ -43,6 +47,8 @@ func NewTradeService(c *TSConifg) model.TradeService {
 		Delay:            c.Delay,
 		InfoWebhook:      c.InfoWebhook,
 		ErrorWebhook:     c.ErrorWebhook,
+		TradeRateApi:     c.TradeRateApi,
+		MaxRate:          c.MaxRate,
 	}
 }
 
@@ -108,15 +114,16 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		s.SendTradeRst(fmt.Sprintf("%s fail to save order with assertType: %s, OrderID: %s", u.Name, assetType, orderID), "error")
 		return apperrors.NewInternal()
 	}
-	JPY := math.Round(amount * avgPrice * 1.0012)
-	// TODO: adding fee on JPY
+	var JPY float64
 	switch o.Side {
 	case "buy":
+		JPY = math.Round(amount * avgPrice * 1.0012)
 		target.FromAmount = JPY
 		target.ToAmount = amount
 		target.FromWallet = walletSec.WID
 		target.ToWallet = walletFir.WID
 	case "sell":
+		JPY = math.Round(amount * avgPrice * 0.9988)
 		target.FromAmount = amount
 		target.ToAmount = JPY
 		target.FromWallet = walletSec.WID
@@ -133,7 +140,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		return apperrors.NewInternal()
 	}
 	loc := time.FixedZone("UTC+9", 9*60*60)
-	s.SendTradeRst(fmt.Sprintf("%s %s %v(%s, ¥%s) cost ¥%v @%v",
+	s.SendTradeRst(fmt.Sprintf("%s %s %v(%s, ¥%s) with ¥%v @%v",
 		u.Name, o.Side, o.StartAmount, o.Pair, o.AveragePrice, JPY, time.Unix(o.OrderedAt/1000, 0).In(loc).Format(time.RFC822)), "info")
 	return nil
 }
@@ -161,6 +168,53 @@ func (s *tradeService) SendTradeRst(msg string, level string) error {
 	client.Do(req)
 
 	return nil
+}
+
+// cron job: info error to discord instead of return err
+func (s *tradeService) GetTradeRate(currencyType string) {
+	var rst model.TradeRateRes
+	url := fmt.Sprintf(s.TradeRateApi, currencyType)
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
+
+	if err != nil {
+		errMsg := fmt.Sprintf("Fail to buiild request for getting trade rate: %s", err.Error())
+		log.Println(errMsg)
+		s.SendTradeRst(errMsg, "error")
+		return
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		errMsg := fmt.Sprintf("Fail to request for trade rate: %s", err.Error())
+		log.Println(errMsg)
+		s.SendTradeRst(errMsg, "error")
+		return
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&rst)
+	if err != nil {
+		errMsg := fmt.Sprintf("Trade rate response err: %s", err.Error())
+		log.Println(errMsg)
+		s.SendTradeRst(errMsg, "error")
+	}
+
+	if rst.Side != "buy" && rst.Side != "sell" {
+		errMsg := fmt.Sprintf("Trade rate response err: side is not buy or sell")
+		log.Println(errMsg, "error")
+		return
+	}
+
+	if rst.Rate > 0.7 || rst.Rate < 0 {
+		errMsg := fmt.Sprintf("Trade rate response err: rate is bigger than %s or less than 0", s.MaxRate)
+		log.Println(errMsg)
+		return
+	}
+
+	// trade for 
+
 }
 
 func normalizeFloat(num float64) float64 {

@@ -11,10 +11,11 @@ import (
 
 const (
 	queryAddWallet     = "INSERT INTO wallets(uid, type, amount) VALUES(?, ?, ?)"
-	queryGetWalletByID = "SELECT * FROM wallets WHERE wid=?"
-	queryGetWallet     = `SELECT * FROM wallets WHERE uid=? AND type=?`
-	queryGetWallets    = `SELECT * FROM wallets WHERE uid=?`
+	queryGetWalletByID = "SELECT * FROM wallets_view WHERE wid=?"
+	queryGetWallet     = `SELECT * FROM wallets_view WHERE uid=? AND type=?`
+	queryGetWallets    = `SELECT * FROM wallets_view WHERE uid=?`
 	queryUpdateAmount  = `UPDATE wallets SET amount=? WHERE wid=?`
+	queryGetCurrencyID = `SELECT id FROM currency_type WHERE`
 )
 
 type walletRepository struct {
@@ -45,7 +46,7 @@ func (r *walletRepository) GetWalletByID(ctx context.Context, wid string) (*mode
 	err := r.DB.GetContext(ctx, rst, queryGetWalletByID, wid)
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to get wallet by id: %v err: %s", wid, err)
-		return rst, err
+		return rst, apperrors.NewNotFound("wallet", wid)
 	}
 	return rst, nil
 }
@@ -55,7 +56,7 @@ func (r *walletRepository) GetWellet(ctx context.Context, uid string, currencyTy
 	err := r.DB.GetContext(ctx, rst, queryGetWallet, uid, currencyType)
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to get wallet by (uid, currency): (%v, %v) err: %s", uid, currencyType, err)
-		return rst, err
+		return rst, apperrors.NewNotFound(uid, currencyType)
 	}
 	return rst, nil
 }
@@ -65,7 +66,7 @@ func (r *walletRepository) GetWallets(ctx context.Context, uid string) (*[]model
 	err := r.DB.SelectContext(ctx, rst, queryGetWallets, uid)
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to get wallets by (uid): %v err: %s", uid, err)
-		return rst, err
+		return rst, apperrors.NewNotFound("uid", uid)
 	}
 	return rst, nil
 }
@@ -83,3 +84,4 @@ func (r *walletRepository) UpdateAmount(ctx context.Context, wid string, amount 
 	}
 	return nil
 }
+

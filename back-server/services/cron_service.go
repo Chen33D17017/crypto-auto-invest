@@ -111,8 +111,6 @@ func (s *cronService) AddCronFunc(ctx context.Context, cb *model.Cron) error {
 		return err
 	}
 
-	// log.Printf("cronID: %v with entityID: %v\n", cb.ID, entityID)
-
 	if err := s.CronJobManager.SetCronJob(ctx, cb.ID, int(entityID)); err != nil {
 		return err
 	}

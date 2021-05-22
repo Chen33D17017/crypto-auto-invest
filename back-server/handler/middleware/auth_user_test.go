@@ -38,17 +38,10 @@ func TestAuthUser(t *testing.T) {
 	t.Run("Adds a user to context", func(t *testing.T) {
 		rr := httptest.NewRecorder()
 
-		// creates a test context and gin engine
 		_, r := gin.CreateTestContext(rr)
 
-		// will be populated with user in a handler
-		// if AuthUser middleware is successful
 		var contextUser *model.User
 
-		// see this issue - https://github.com/gin-gonic/gin/issues/323
-		// https://github.com/gin-gonic/gin/blob/master/auth_test.go#L91-L126
-		// we create a handler to return "user added to context" as this
-		// is the only way to test modified context
 		r.GET("/me", AuthUser(mockTokenService), func(c *gin.Context) {
 			contextKeyVal, _ := c.Get("user")
 			contextUser = contextKeyVal.(*model.User)

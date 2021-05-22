@@ -38,9 +38,8 @@ func (h *Handler) AddWallet(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("Fail to Add Wallet %s to %v, err: %v\n", req.Type, uid, err)
-		e := err.(*apperrors.Error)
-		c.JSON(e.Status(), gin.H{
-			"error": e,
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": err,
 		})
 		return
 	}

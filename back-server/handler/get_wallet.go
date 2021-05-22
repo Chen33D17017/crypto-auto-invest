@@ -3,7 +3,6 @@ package handler
 import (
 	"crypto-auto-invest/model"
 	"crypto-auto-invest/model/apperrors"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -28,9 +27,8 @@ func (h *Handler) GetWallets(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("Unable to find user: %v\n%v\n", uid, err)
-		e := apperrors.NewNotFound("user", uid)
-		c.JSON(e.Status(), gin.H{
-			"error": e,
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": err,
 		})
 		return
 	}
@@ -68,10 +66,8 @@ func (h *Handler) GetWallet(c *gin.Context) {
 	wallets, err := h.WalletService.GetUserWallet(ctx, uid, currencyType)
 
 	if err != nil {
-		log.Printf("Unable to find wallet: %v\n%v\n", uid, err)
-		e := apperrors.NewNotFound("wallet", fmt.Sprintf("%s,%s", uid, currencyType))
-		c.JSON(e.Status(), gin.H{
-			"error": e,
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": err,
 		})
 		return
 	}
