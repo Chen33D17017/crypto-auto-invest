@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto-auto-invest/handler"
+	"crypto-auto-invest/model"
 	"crypto-auto-invest/repository"
 	"crypto-auto-invest/services"
 	"fmt"
@@ -47,14 +48,19 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	td, err := strconv.ParseInt(tradeDelay, 0, 64)
 	infoWebhook := os.Getenv("INFO_WEBHOOK")
 	errorWebhook := os.Getenv("ERROR_WEBHOOK")
-
-	tradeService := services.NewTradeService(&services.TSConifg{
-		TradeRepository:  tradeRepository,
-		WalletRepository: walletRepository,
-		InfoWebhook:      infoWebhook,
-		ErrorWebhook:     errorWebhook,
-		Delay:            time.Duration(time.Duration(td) * time.Second),
-	})
+	mode := os.Getenv("MODE")
+	var tradeService model.TradeService
+	if mode == "dev" {
+		tradeService = services.NewTradeService(&services.TSConifg{
+			TradeRepository:  tradeRepository,
+			WalletRepository: walletRepository,
+			InfoWebhook:      infoWebhook,
+			ErrorWebhook:     errorWebhook,
+			Delay:            time.Duration(time.Duration(td) * time.Second),
+		})
+	} else {
+		tradeService = services.NewMockTradeService()
+	}
 
 	// init cron job manager
 	cron := cron.New()
