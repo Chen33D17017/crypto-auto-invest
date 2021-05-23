@@ -32,6 +32,7 @@ type WalletService interface {
 type TradeService interface {
 	Trade(ctx context.Context, u *User, amount float64, side, assetType, orderType string) (bm.Order, error)
 	SaveOrder(ctx context.Context, u *User, orderID string, assetType, orderType string) error
+	SendTradeRst(msg string, level string) error
 }
 
 type CronService interface {
@@ -42,6 +43,13 @@ type CronService interface {
 	DeleteCron(ctx context.Context, uid string, cronID string) error
 	AddCronFunc(ctx context.Context, cb *Cron) error
 	RemoveCronFunc(ctx context.Context, cronID string) error
+}
+
+type AutoTradeService interface {
+	// SetAutoTrade(ctx context.Context, uid, currencyName string) error
+	// DeleteAutoTrade(ctx context.Context, uid, absID string) error
+	AutoTrade(uid string, currencyName string)
+	GetTradeRate(currencyName string)
 }
 
 type UserRepository interface {
@@ -61,7 +69,7 @@ type TokenRepository interface {
 type WalletRepository interface {
 	AddWallet(ctx context.Context, uid string, cid int) error
 	GetWalletByID(ctx context.Context, wid string) (*Wallet, error)
-	GetWellet(ctx context.Context, uid string, currencyType string) (*Wallet, error)
+	GetWellet(ctx context.Context, uid string, currencyName string) (*Wallet, error)
 	GetWallets(ctx context.Context, uid string) (*[]Wallet, error)
 	UpdateAmount(ctx context.Context, wid string, amount float64) error
 	GetCurrencyID(ctx context.Context, currencyName string) (int, error)

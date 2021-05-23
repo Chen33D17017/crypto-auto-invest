@@ -51,12 +51,12 @@ func (r *walletRepository) GetWalletByID(ctx context.Context, wid string) (*mode
 	return rst, nil
 }
 
-func (r *walletRepository) GetWellet(ctx context.Context, uid string, currencyType string) (*model.Wallet, error) {
+func (r *walletRepository) GetWellet(ctx context.Context, uid string, currencyName string) (*model.Wallet, error) {
 	rst := &model.Wallet{}
-	err := r.DB.GetContext(ctx, rst, queryGetWallet, uid, currencyType)
+	err := r.DB.GetContext(ctx, rst, queryGetWallet, uid, currencyName)
 	if err != nil {
-		log.Printf("REPOSITORY: Unable to get wallet by (uid, currency): (%v, %v) err: %s", uid, currencyType, err)
-		return rst, apperrors.NewNotFound(uid, currencyType)
+		log.Printf("REPOSITORY: Unable to get wallet by (uid, currency): (%v, %v) err: %s", uid, currencyName, err)
+		return rst, apperrors.NewNotFound(uid, currencyName)
 	}
 	return rst, nil
 }

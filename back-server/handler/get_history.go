@@ -22,7 +22,7 @@ func (h *Handler) GetHistory(c *gin.Context) {
 		return
 	}
 
-	currencyType, ok := c.GetQuery("type")
+	currencyName, ok := c.GetQuery("type")
 	if !ok {
 		log.Printf("Unable to extract currency type")
 		err := apperrors.NewBadRequest("Need to query with concurrency type")
@@ -39,7 +39,7 @@ func (h *Handler) GetHistory(c *gin.Context) {
 	secret := bm.Secret{
 		ApiKey:    target.ApiKey,
 		ApiSecret: target.ApiSecret}
-	history, err := bitbank.GetTradeHistory(secret, currencyType)
+	history, err := bitbank.GetTradeHistory(secret, currencyName)
 
 	if err != nil {
 		log.Printf("bitbank err: %v\n", err)

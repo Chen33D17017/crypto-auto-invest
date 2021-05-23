@@ -23,7 +23,7 @@ func (h *Handler) GetTrade(c *gin.Context) {
 	}
 
 	tid, tok := c.GetQuery("tid")
-	currencyType, cok := c.GetQuery("type")
+	currencyName, cok := c.GetQuery("type")
 	if !tok || !cok {
 		log.Printf("Unable to extract transaction id & currency type")
 		err := apperrors.NewBadRequest("Need to query with transaction id and concurrency type")
@@ -40,7 +40,7 @@ func (h *Handler) GetTrade(c *gin.Context) {
 	secret := bm.Secret{
 		ApiKey:    target.ApiKey,
 		ApiSecret: target.ApiSecret}
-	orderInfo, err := bitbank.GetOrderInfo(secret, currencyType, tid)
+	orderInfo, err := bitbank.GetOrderInfo(secret, currencyName, tid)
 
 	if err != nil {
 		log.Printf("bitbank err: %v\n", err)

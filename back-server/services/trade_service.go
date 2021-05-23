@@ -170,52 +170,7 @@ func (s *tradeService) SendTradeRst(msg string, level string) error {
 	return nil
 }
 
-// cron job: info error to discord instead of return err
-func (s *tradeService) GetTradeRate(currencyType string) {
-	var rst model.TradeRateRes
-	url := fmt.Sprintf(s.TradeRateApi, currencyType)
 
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-
-	if err != nil {
-		errMsg := fmt.Sprintf("Fail to buiild request for getting trade rate: %s", err.Error())
-		log.Println(errMsg)
-		s.SendTradeRst(errMsg, "error")
-		return
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		errMsg := fmt.Sprintf("Fail to request for trade rate: %s", err.Error())
-		log.Println(errMsg)
-		s.SendTradeRst(errMsg, "error")
-		return
-	}
-	defer resp.Body.Close()
-
-	err = json.NewDecoder(resp.Body).Decode(&rst)
-	if err != nil {
-		errMsg := fmt.Sprintf("Trade rate response err: %s", err.Error())
-		log.Println(errMsg)
-		s.SendTradeRst(errMsg, "error")
-	}
-
-	if rst.Side != "buy" && rst.Side != "sell" {
-		errMsg := fmt.Sprintf("Trade rate response err: side is not buy or sell")
-		log.Println(errMsg, "error")
-		return
-	}
-
-	if rst.Rate > 0.7 || rst.Rate < 0 {
-		errMsg := fmt.Sprintf("Trade rate response err: rate is bigger than %s or less than 0", s.MaxRate)
-		log.Println(errMsg)
-		return
-	}
-
-	// trade for 
-
-}
 
 func normalizeFloat(num float64) float64 {
 	return math.Round(num*10000) / 10000

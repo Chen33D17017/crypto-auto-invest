@@ -10,7 +10,7 @@ import (
 )
 
 func (h *Handler) GetPrice(c *gin.Context) {
-	currencyType, ok := c.GetQuery("type")
+	currencyName, ok := c.GetQuery("type")
 	if !ok {
 		log.Printf("Unable to extract currency type")
 		err := apperrors.NewNotFound("currency type", "")
@@ -20,10 +20,10 @@ func (h *Handler) GetPrice(c *gin.Context) {
 		return
 	}
 
-	rst, err := bitbank.GetPrice(currencyType)
+	rst, err := bitbank.GetPrice(currencyName)
 	if err != nil {
 		log.Printf("Unable to extract currency type")
-		err := apperrors.NewNotFound("currency type", currencyType)
+		err := apperrors.NewNotFound("currency type", currencyName)
 		c.JSON(err.Status(), gin.H{
 			"error": err,
 		})

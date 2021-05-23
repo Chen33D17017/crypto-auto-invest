@@ -38,8 +38,8 @@ func (m *mockWalletRepository) GetWalletByID(ctx context.Context, wid string) (*
 	return r0, r1
 }
 
-func (m *mockWalletRepository) GetWellet(ctx context.Context, uid string, currencyType string) (*model.Wallet, error) {
-	ret := m.Called(ctx, uid, currencyType)
+func (m *mockWalletRepository) GetWellet(ctx context.Context, uid string, currencyName string) (*model.Wallet, error) {
+	ret := m.Called(ctx, uid, currencyName)
 
 	var r0 *model.Wallet
 	if ret.Get(0) != nil {
