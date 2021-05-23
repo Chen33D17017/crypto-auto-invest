@@ -72,14 +72,6 @@ func (s *autoTradeService) AddAutoTrade(ctx context.Context, uid, currencyName s
 }
 
 func (s *autoTradeService) DeleteAutoTrade(ctx context.Context, uid, currencyName string) error {
-	cID, err := s.WalletRepository.GetCurrencyID(ctx, currencyName)
-	if err != nil {
-		return err
-	}
-	err = s.AutoTradeRepository.DeleteAutoTrade(ctx, uid, cID)
-	if err != nil {
-		return err
-	}
 	setting, err := s.AutoTradeRepository.GetAutoTrade(ctx, uid, currencyName)
 	if err != nil {
 		return err
@@ -89,6 +81,17 @@ func (s *autoTradeService) DeleteAutoTrade(ctx context.Context, uid, currencyNam
 	if err != nil {
 		return err
 	}
+
+	cID, err := s.WalletRepository.GetCurrencyID(ctx, currencyName)
+	if err != nil {
+		return err
+	}
+
+	err = s.AutoTradeRepository.DeleteAutoTrade(ctx, uid, cID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

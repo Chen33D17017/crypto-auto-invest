@@ -68,7 +68,7 @@ func (r *autoTradeRepository) GetAutoTrades(ctx context.Context, uid string) (*[
 
 func (r *autoTradeRepository) GetAutoTrade(ctx context.Context, uid, currencyName string) (*model.AutoTrade, error) {
 	rst := &model.AutoTrade{}
-	err := r.DB.SelectContext(ctx, rst, queryGetAutoTrade, uid, currencyName)
+	err := r.DB.GetContext(ctx, rst, queryGetAutoTrade, uid, currencyName)
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to get auto trade setting (uid, currency): (%v, %s) err: %s", uid, currencyName, err)
 		return rst, apperrors.NewInternal()
