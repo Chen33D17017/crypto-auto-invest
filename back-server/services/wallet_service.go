@@ -61,11 +61,11 @@ func (w *walletService) ChangeMoney(ctx context.Context, uid string, currencyNam
 		return nil, err
 	}
 
-	rst.AMOUNT += amount
-	if rst.AMOUNT < 0 {
+	rst.Amount += amount
+	if rst.Amount < 0 {
 		return nil, err
 	}
-	err = w.WalletRepository.UpdateAmount(ctx, rst.WID, rst.AMOUNT)
+	err = w.WalletRepository.UpdateAmount(ctx, rst.WID, rst.Amount)
 	if err != nil {
 		return nil, err
 	}

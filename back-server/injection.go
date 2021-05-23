@@ -29,6 +29,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	walletRepository := repository.NewWalletRepository(d.DB)
 	tradeRepository := repository.NewTradeRepository(d.DB)
 	cronRepository := repository.NewCronRepository(d.DB)
+	autoTradeRepository := repository.NewAutoTradeRepository(d.DB)
 
 	/*
 	 * service layer
@@ -79,6 +80,21 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		ctx := context.TODO()
 		cronService.AddCronFunc(ctx, &job)
 	}
+
+	tradeRateApi := os.Getenv("TRADE_RATE_API")
+	maxRate := os.Getenv("MAX_RATE")
+	rate, err := strconv.ParseFloat(maxRate, 64)
+	if err != nil {
+		log.Fatalf("Fail to load max rate on auto trade")
+	}
+	autoTradeService := services.NewAutoTradeService(&services.ATSConifg{
+		TradeService:        tradeService,
+		WalletRepository:    walletRepository,
+		UserRepository:      userRepository,
+		AutoTradeRepository: autoTradeRepository,
+		TradeRateApi:        tradeRateApi,
+		MaxRate:             rate,
+	})
 
 	// load rsa keys
 	privKeyFile := os.Getenv("PRIV_KEY_FILE")
@@ -146,14 +162,15 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	}
 
 	handler.NewHandler(&handler.Config{
-		R:               router,
-		UserService:     userService,
-		TokenService:    tokenService,
-		WalletService:   walletService,
-		TradeService:    tradeService,
-		CronService:     cronService,
-		BaseURL:         baseURL,
-		TimeoutDuration: time.Duration(time.Duration(ht) * time.Second),
+		R:                router,
+		UserService:      userService,
+		TokenService:     tokenService,
+		WalletService:    walletService,
+		TradeService:     tradeService,
+		CronService:      cronService,
+		AutoTradeService: autoTradeService,
+		BaseURL:          baseURL,
+		TimeoutDuration:  time.Duration(time.Duration(ht) * time.Second),
 	})
 
 	return router, nil

@@ -11,32 +11,34 @@ import (
 )
 
 type Handler struct {
-	UserService   model.UserService
-	TokenService  model.TokenService
-	WalletService model.WalletService
-	TradeService  model.TradeService
-	CronService   model.CronService
+	UserService      model.UserService
+	TokenService     model.TokenService
+	WalletService    model.WalletService
+	TradeService     model.TradeService
+	CronService      model.CronService
+	AutoTradeService model.AutoTradeService
 }
 
 type Config struct {
-	R               *gin.Engine
-	UserService     model.UserService
-	TokenService    model.TokenService
-	WalletService   model.WalletService
-	TradeService    model.TradeService
-	CronService     model.CronService
-	BaseURL         string
-	TimeoutDuration time.Duration
-	Delay           time.Duration
+	R                *gin.Engine
+	UserService      model.UserService
+	TokenService     model.TokenService
+	WalletService    model.WalletService
+	TradeService     model.TradeService
+	CronService      model.CronService
+	AutoTradeService model.AutoTradeService
+	BaseURL          string
+	TimeoutDuration  time.Duration
 }
 
 func NewHandler(c *Config) {
 	h := &Handler{
-		UserService:   c.UserService,
-		TokenService:  c.TokenService,
-		WalletService: c.WalletService,
-		TradeService:  c.TradeService,
-		CronService:   c.CronService,
+		UserService:      c.UserService,
+		TokenService:     c.TokenService,
+		WalletService:    c.WalletService,
+		TradeService:     c.TradeService,
+		CronService:      c.CronService,
+		AutoTradeService: c.AutoTradeService,
 	}
 	g_user := c.R.Group(c.BaseURL)
 	g_price := c.R.Group("/api/bitbank")
@@ -65,6 +67,9 @@ func NewHandler(c *Config) {
 
 		g_crypto.POST("/trade", middleware.AuthUser(h.TokenService), h.Trade)
 		g_crypto.POST("/order", middleware.AuthUser(h.TokenService), h.SaveOrder)
+		g_crypto.POST("/auto_trade", middleware.AuthUser(h.TokenService), h.AddAutoTrade)
+		g_crypto.DELETE("/auto_trade", middleware.AuthUser(h.TokenService), h.DeleteAutoTrade)
+		g_crypto.GET("/auto_trades", middleware.AuthUser(h.TokenService), h.GetAutoTrades)
 	} else {
 		g_user.GET("/me", h.Me)
 		g_user.POST("/signout", h.Signout)

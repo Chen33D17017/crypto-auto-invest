@@ -51,7 +51,8 @@ func NewTradeService(c *TSConifg) model.TradeService {
 		MaxRate:          c.MaxRate,
 	}
 }
-
+// Buy unit JPY
+// Sell unit crypto currency
 func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, side, assetType, orderType string) (bm.Order, error) {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,

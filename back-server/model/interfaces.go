@@ -46,10 +46,11 @@ type CronService interface {
 }
 
 type AutoTradeService interface {
-	// SetAutoTrade(ctx context.Context, uid, currencyName string) error
-	// DeleteAutoTrade(ctx context.Context, uid, absID string) error
-	AutoTrade(uid string, currencyName string)
-	GetTradeRate(currencyName string)
+	AddAutoTrade(ctx context.Context, uid, currencyName string) error
+	DeleteAutoTrade(ctx context.Context, uid, currencyName string) error
+	GetAutoTrades(ctx context.Context, uid string) (*[]AutoTrade, error)
+	GetTradeRate(reqBody TradeRateReq) (TradeRateRes, error)
+	AutoTrade(uid string, currencyName string) error
 }
 
 type UserRepository interface {
@@ -87,6 +88,12 @@ type CronRepository interface {
 	DeleteCron(ctx context.Context, userID string, cronID string) error
 	GetCronID(ctx context.Context, uid, cryptoType, timePattern string) (string, error)
 	GetAllCrons() (*[]Cron, error)
+}
+
+type AutoTradeRepository interface {
+	AddAutoTrade(ctx context.Context, uid string, type_id int) error
+	DeleteAutoTrade(ctx context.Context, uid string, type_id int) error
+	GetAutoTrades(ctx context.Context, uid string) (*[]AutoTrade, error)
 }
 
 type CronJobManager interface {

@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS crons(
   UNIQUE (`uid`, `type_id`, `time_pattern`)
 );
 
-CREATE TABLE IF NOT EXISTS auto_buy_setting(
+CREATE TABLE IF NOT EXISTS auto_trades(
   `id` VARCHAR(100) DEFAULT (uuid()) PRIMARY KEY,
   `uid` VARCHAR(100) NOT NULL,
   `type_id` INT NOT NULL,
@@ -94,8 +94,8 @@ ON
 CREATE VIEW `crons_view` AS
 SELECT
     c.id as id,
-    c.uid as uid,
-    ct.name as type,
+    c.uid as `uid`,
+    ct.name as `type`,
     c.amount as amount,
     c.time_pattern as time_pattern
 FROM
@@ -104,3 +104,16 @@ INNER JOIN
     currency_type ct
 ON
     c.type_id=ct.id;
+
+-- view of auto_trades
+CREATE VIEW `auto_trades_view` AS
+SELECT
+    `at`.id as id,
+    `at`.`uid` as `uid`,
+    ct.name as `type`
+FROM
+    auto_trades as `at`
+INNER JOIN
+    currency_type ct
+ON
+    `at`.type_id=ct.id;
