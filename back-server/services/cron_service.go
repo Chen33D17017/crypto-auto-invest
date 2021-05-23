@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"crypto-auto-invest/model"
+	"fmt"
 
 	"github.com/robfig/cron/v3"
 )
@@ -116,14 +117,14 @@ func (s *cronService) AddCronFunc(ctx context.Context, cb *model.Cron) error {
 		return err
 	}
 
-	if err := s.CronJobManager.SetCronJob(ctx, cb.ID, int(entityID)); err != nil {
+	if err := s.CronJobManager.SetCronJob(ctx, fmt.Sprintf("fixed:%s", cb.ID), int(entityID)); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (s *cronService) RemoveCronFunc(ctx context.Context, cronID string) error {
-	entityID, err := s.CronJobManager.GetAndDeleteCronJob(ctx, cronID)
+	entityID, err := s.CronJobManager.GetAndDeleteCronJob(ctx, fmt.Sprintf("fixed:%s", cronID))
 	if err != nil {
 		return err
 	}

@@ -23,46 +23,46 @@ func NewCronJobManager(redisClient *redis.Client) model.CronJobManager {
 
 // https://medium.com/easyread/unit-test-redis-in-golang-c22b5589ea37In
 
-func (r *cronJobManager) SetCronJob(ctx context.Context, cronID string, entityID int) error {
-	if err := r.Redis.Set(ctx, cronID, entityID, 0).Err(); err != nil {
-		log.Printf("REPOSITORY: Could not set job entity to redis for cronID/entityID: %s/%v: %s\n", cronID, entityID, err)
+func (r *cronJobManager) SetCronJob(ctx context.Context, key string, value int) error {
+	if err := r.Redis.Set(ctx, key, value, 0).Err(); err != nil {
+		log.Printf("REPOSITORY: Could not set job entity to redis for cronID/entityID: %s/%v: %s\n", key, value, err)
 		return apperrors.NewInternal()
 	}
 	return nil
 }
 
-func (r *cronJobManager) GetCronJob(ctx context.Context, cronID string) (int, error) {
-	rst, err := r.Redis.Get(ctx, cronID).Int()
+func (r *cronJobManager) GetCronJob(ctx context.Context, key string) (int, error) {
+	rst, err := r.Redis.Get(ctx, key).Int()
 	if err != nil {
-		log.Printf("REPOSITORY: Could not get job entity from redis for cronID: %s\n", cronID)
+		log.Printf("REPOSITORY: Could not get job entity from redis for cronID: %s\n", key)
 		return rst, apperrors.NewInternal()
 	}
 
 	return rst, nil
 }
 
-func (r *cronJobManager) DeleteCronJob(ctx context.Context, cronID string) error {
-	result := r.Redis.Del(ctx, cronID)
+func (r *cronJobManager) DeleteCronJob(ctx context.Context, key string) error {
+	result := r.Redis.Del(ctx, key)
 
 	if err := result.Err(); err != nil {
-		log.Printf("REPOSITORY: Could not delete cronID to redis for cronID: %s %s\n", cronID, err)
+		log.Printf("REPOSITORY: Could not delete cronID to redis for cronID: %s %s\n", key, err)
 		return apperrors.NewInternal()
 	}
 
 	if result.Val() < 1 {
-		log.Printf("REPOSITORY: CronID %s to redis does not exist\n", cronID)
+		log.Printf("REPOSITORY: CronID %s to redis does not exist\n", key)
 		return apperrors.NewInternal()
 	}
 
 	return nil
 }
 
-func (r *cronJobManager) GetAndDeleteCronJob(ctx context.Context, cronID string) (int, error) {
-	entityID, err := r.GetCronJob(ctx, cronID)
+func (r *cronJobManager) GetAndDeleteCronJob(ctx context.Context, key string) (int, error) {
+	entityID, err := r.GetCronJob(ctx, key)
 	if err != nil {
 		return 0, err
 	}
-	err = r.DeleteCronJob(ctx, cronID)
+	err = r.DeleteCronJob(ctx, key)
 	if err != nil {
 		return 0, err
 	}

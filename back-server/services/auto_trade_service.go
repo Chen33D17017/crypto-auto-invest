@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/robfig/cron/v3"
 )
 
 type autoTradeService struct {
@@ -15,6 +17,9 @@ type autoTradeService struct {
 	WalletRepository    model.WalletRepository
 	UserRepository      model.UserRepository
 	AutoTradeRepository model.AutoTradeRepository
+	CronJobManager      model.CronJobManager
+	Cron                *cron.Cron
+	TimePattern         string
 	TradeRateApi        string
 	MaxRate             float64
 }
@@ -24,6 +29,9 @@ type ATSConifg struct {
 	UserRepository      model.UserRepository
 	AutoTradeRepository model.AutoTradeRepository
 	TradeService        model.TradeService
+	CronJobManager      model.CronJobManager
+	Cron                *cron.Cron
+	TimePattern         string
 	TradeRateApi        string
 	MaxRate             float64
 }
@@ -34,6 +42,9 @@ func NewAutoTradeService(c *ATSConifg) model.AutoTradeService {
 		WalletRepository:    c.WalletRepository,
 		UserRepository:      c.UserRepository,
 		AutoTradeRepository: c.AutoTradeRepository,
+		CronJobManager:      c.CronJobManager,
+		Cron:                c.Cron,
+		TimePattern:         c.TimePattern,
 		TradeRateApi:        c.TradeRateApi,
 		MaxRate:             c.MaxRate,
 	}
@@ -49,7 +60,14 @@ func (s *autoTradeService) AddAutoTrade(ctx context.Context, uid, currencyName s
 		return err
 	}
 
-	// TODO: Add cron job here
+	setting, err := s.AutoTradeRepository.GetAutoTrade(ctx, uid, currencyName)
+	if err != nil {
+		return err
+	}
+	err = s.AddCronFunc(ctx, *setting)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -62,7 +80,15 @@ func (s *autoTradeService) DeleteAutoTrade(ctx context.Context, uid, currencyNam
 	if err != nil {
 		return err
 	}
-	// TODO: Delete cron job here
+	setting, err := s.AutoTradeRepository.GetAutoTrade(ctx, uid, currencyName)
+	if err != nil {
+		return err
+	}
+
+	err = s.RemoveCronFunc(ctx, setting.ID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -158,5 +184,28 @@ func (s *autoTradeService) AutoTrade(uid string, currencyName string) error {
 			return nil
 		}
 	}
+	return nil
+}
+
+func (s *autoTradeService) AddCronFunc(ctx context.Context, setting model.AutoTrade) error {
+	entityID, err := s.Cron.AddFunc(s.TimePattern, func() {
+		s.AutoTrade(setting.UID, setting.Type)
+	})
+	if err != nil {
+		return err
+	}
+
+	if err := s.CronJobManager.SetCronJob(ctx, fmt.Sprintf("auto:%s", setting.ID), int(entityID)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *autoTradeService) RemoveCronFunc(ctx context.Context, autoTradeID string) error {
+	entityID, err := s.CronJobManager.GetAndDeleteCronJob(ctx, fmt.Sprintf("auto:%s", autoTradeID))
+	if err != nil {
+		return err
+	}
+	s.Cron.Remove(cron.EntryID(entityID))
 	return nil
 }

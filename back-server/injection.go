@@ -83,6 +83,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 
 	tradeRateApi := os.Getenv("TRADE_RATE_API")
 	maxRate := os.Getenv("MAX_RATE")
+	autoTradeTimePattern := os.Getenv("AUTO_TRADE_TIME")
 	rate, err := strconv.ParseFloat(maxRate, 64)
 	if err != nil {
 		log.Fatalf("Fail to load max rate on auto trade")
@@ -92,6 +93,9 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		WalletRepository:    walletRepository,
 		UserRepository:      userRepository,
 		AutoTradeRepository: autoTradeRepository,
+		CronJobManager:      cronJobManager,
+		Cron:                cron,
+		TimePattern:         autoTradeTimePattern,
 		TradeRateApi:        tradeRateApi,
 		MaxRate:             rate,
 	})
