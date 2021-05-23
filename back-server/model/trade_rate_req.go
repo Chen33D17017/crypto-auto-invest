@@ -2,6 +2,6 @@ package model
 
 type TradeRateReq struct {
 	JPY    float64 `json:"jpy"`
-	Type   string  `json:"type"`
-	Amount float64 `json:"amount"`
+	Type   string  `json:"crypto_name"`
+	Amount float64 `json:"crypto_amount"`
 }
