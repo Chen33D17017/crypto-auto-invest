@@ -106,6 +106,19 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		MaxRate:             rate,
 	})
 
+	settings, err := autoTradeRepository.GetAllAutoTrade()
+	if err != nil {
+		log.Fatalln("Fail to load auto trade setting")
+	}
+	log.Printf("Load auto buy setting number: %v\n", len(*settings))
+	for _, setting := range *settings {
+		ctx := context.TODO()
+		err = autoTradeService.AddCronFunc(ctx, setting)
+		if err != nil {
+			log.Fatalln("Fail to load auto trade setting")
+		}
+	}
+
 	// load rsa keys
 	privKeyFile := os.Getenv("PRIV_KEY_FILE")
 	priv, err := ioutil.ReadFile(privKeyFile)
