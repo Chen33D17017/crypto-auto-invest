@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS orders(
   `to_wid` VARCHAR(100) NOT NULL,
   `to_amount` float NOT NULL,
   `timestamp` TIMESTAMP NOT NULL,
+  `fee` float NOT NULL,
   `type` VARCHAR(10),
 
   FOREIGN KEY (`from_wid`) REFERENCES `wallets` (`wid`),

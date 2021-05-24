@@ -9,19 +9,9 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-/*
-`tid` VARCHAR(100) NOT NULL PRIMARY KEY,
-  `uid` VARCHAR(100) NOT NULL,
-  `from_wid` VARCHAR(100) NOT NULL,
-  `from_amount` float NOT NULL,
-  `to_wid` VARCHAR(100) NOT NULL,
-  `to_amount` float NOT NULL,
-  `timestamp` VARCHAR(255) NOT NULL
-*/
-
 const (
-	queryInsertTradeLog = `INSERT INTO orders (oid, uid, from_wid, from_amount, to_wid, to_amount, timestamp, type) 
-							VALUES (:oid, :uid, :from_wid, :from_amount, :to_wid, :to_amount, :timestamp, :type)`
+	queryInsertTradeLog = `INSERT INTO orders (oid, uid, from_wid, from_amount, to_wid, to_amount, timestamp, fee, type) 
+							VALUES (:oid, :uid, :from_wid, :from_amount, :to_wid, :to_amount, :timestamp, :fee, :type)`
 )
 
 type tradeRepository struct {

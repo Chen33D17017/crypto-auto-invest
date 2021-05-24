@@ -116,16 +116,15 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		s.SendTradeRst(fmt.Sprintf("%s fail to save order with assertType: %s, OrderID: %s", u.Name, assetType, orderID), "error")
 		return apperrors.NewInternal()
 	}
-	var JPY float64
+	JPY := normalizeFloat(amount * avgPrice)
+	target.Fee = normalizeFloat(amount * avgPrice * 0.0012)
 	switch o.Side {
 	case "buy":
-		JPY = math.Round(amount * avgPrice * 1.0012)
 		target.FromAmount = JPY
 		target.ToAmount = amount
 		target.FromWallet = JPYWallet.WID
 		target.ToWallet = currencyWallet.WID
 	case "sell":
-		JPY = math.Round(amount * avgPrice * 0.9988)
 		target.FromAmount = amount
 		target.ToAmount = JPY
 		target.FromWallet = currencyWallet.WID
@@ -149,11 +148,11 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	if orderType == "auto" {
 		switch o.Side {
 		case "buy":
-			s.WalletRepository.UpdateAmount(ctx, JPYWallet.WID, -math.Round(amount*avgPrice*1.0012))
+			s.WalletRepository.UpdateAmount(ctx, JPYWallet.WID, -(JPY + target.Fee))
 			s.WalletRepository.UpdateAmount(ctx, currencyWallet.WID, amount)
 		case "sell":
 			s.WalletRepository.UpdateAmount(ctx, JPYWallet.WID, -amount)
-			s.WalletRepository.UpdateAmount(ctx, currencyWallet.WID, math.Round(amount*avgPrice*0.9988))
+			s.WalletRepository.UpdateAmount(ctx, currencyWallet.WID, (JPY - target.Fee))
 		}
 	}
 

@@ -8,5 +8,6 @@ type Order struct {
 	ToWallet   string  `db:"to_wid"`
 	ToAmount   float64 `db:"to_amount"`
 	Timestamp  string  `db:"timestamp"`
+	Fee        float64 `db:"fee"`
 	Type       string  `db:"type"`
 }
