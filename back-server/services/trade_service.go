@@ -51,6 +51,7 @@ func NewTradeService(c *TSConifg) model.TradeService {
 		MaxRate:          c.MaxRate,
 	}
 }
+
 // Buy unit JPY
 // Sell unit crypto currency
 func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, side, assetType, orderType string) (bm.Order, error) {
@@ -108,8 +109,8 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	}
 
 	currencies := strings.Split(o.Pair, "_")
-	walletFir, err1 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[0])
-	walletSec, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1])
+	JPYWallet, err1 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[0])
+	currencyWallet, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1])
 	if err1 != nil || err2 != nil {
 		log.Printf("Wrong cuncerrency with user %v", u.UID)
 		s.SendTradeRst(fmt.Sprintf("%s fail to save order with assertType: %s, OrderID: %s", u.Name, assetType, orderID), "error")
@@ -121,14 +122,14 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		JPY = math.Round(amount * avgPrice * 1.0012)
 		target.FromAmount = JPY
 		target.ToAmount = amount
-		target.FromWallet = walletSec.WID
-		target.ToWallet = walletFir.WID
+		target.FromWallet = JPYWallet.WID
+		target.ToWallet = currencyWallet.WID
 	case "sell":
 		JPY = math.Round(amount * avgPrice * 0.9988)
 		target.FromAmount = amount
 		target.ToAmount = JPY
-		target.FromWallet = walletSec.WID
-		target.ToWallet = walletFir.WID
+		target.FromWallet = currencyWallet.WID
+		target.ToWallet = JPYWallet.WID
 	}
 
 	target.Timestamp = time.Unix(o.OrderedAt/1000, 0).Format("2006-01-02 15:04:05")
@@ -143,6 +144,19 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	loc := time.FixedZone("UTC+9", 9*60*60)
 	s.SendTradeRst(fmt.Sprintf("%s %s %v(%s, ¥%s) with ¥%v @%v",
 		u.Name, o.Side, o.StartAmount, o.Pair, o.AveragePrice, JPY, time.Unix(o.OrderedAt/1000, 0).In(loc).Format(time.RFC822)), "info")
+
+	// Money movement between wallets when orderType is auto
+	if orderType == "auto" {
+		switch o.Side {
+		case "buy":
+			s.WalletRepository.UpdateAmount(ctx, JPYWallet.WID, -math.Round(amount*avgPrice*1.0012))
+			s.WalletRepository.UpdateAmount(ctx, currencyWallet.WID, amount)
+		case "sell":
+			s.WalletRepository.UpdateAmount(ctx, JPYWallet.WID, -amount)
+			s.WalletRepository.UpdateAmount(ctx, currencyWallet.WID, math.Round(amount*avgPrice*0.9988))
+		}
+	}
+
 	return nil
 }
 
@@ -170,8 +184,6 @@ func (s *tradeService) SendTradeRst(msg string, level string) error {
 
 	return nil
 }
-
-
 
 func normalizeFloat(num float64) float64 {
 	return math.Round(num*10000) / 10000
