@@ -1,16 +1,16 @@
 version: "3.8"
 services: 
-  reverse-proxy:
-    image: traefik:v2.2
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker"
-      - "--providers.docker.exposedByDefault=false"
-    ports:
-      - "80:80"
-      - "8080:8080"
-    volumes: 
-      - /var/run/docker.sock:/var/run/docker.sock
+  #reverse-proxy:
+  #  image: traefik:v2.2
+  #  command:
+  #    - "--api.insecure=true"
+  #    - "--providers.docker"
+  #    - "--providers.docker.exposedByDefault=false"
+  #  ports:
+  #    - "80:80"
+  #    - "8080:8080"
+  #  volumes: 
+  #    - /var/run/docker.sock:/var/run/docker.sock
   # service-db:
   #   image: "mysql:8"
   #   container_name: service-db
@@ -36,11 +36,8 @@ services:
       target: builder
     image: back-server
     env_file: ./back-server/.env.dev
-    expose:
-      - "8080"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.back-server.rule=Host(`malcorp.test`)"
+    ports:
+      - "8080:8080"
     environment: 
       - ENV=dev
     volumes: 
