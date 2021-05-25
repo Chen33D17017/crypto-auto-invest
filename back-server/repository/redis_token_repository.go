@@ -21,6 +21,8 @@ func NewTokenRepository(redisClient *redis.Client) model.TokenRepository {
 	}
 }
 
+// https://medium.com/easyread/unit-test-redis-in-golang-c22b5589ea37In
+
 // SetRefreshToken stores a refresh token with an expiry time
 func (r *redisTokenRepository) SetRefreshToken(ctx context.Context, userID string, tokenID string, expiresIn time.Duration) error {
 	// We'll store userID with token id so we can scan (non-blocking)

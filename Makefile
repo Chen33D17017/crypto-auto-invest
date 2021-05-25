@@ -1,4 +1,4 @@
-.PHONY: keypair migrate-create migrate-up migrate-down migrate-force init
+.PHONY: keypair migrate-create migrate-up migrate-down migrate-force init rebuild-db
 
 PWD = $(shell pwd)
 APPPATH = back-server
@@ -25,6 +25,10 @@ migrate-down:
 
 migrate-force:
 	migrate -source file://$(PWD)/$(APPPATH)/migrations -database postgres://postgres:password@localhost:$(PORT)/postgres?sslmode=disable force $(VERSION)
+
+rebuild-db:
+	docker-compose down
+	docker-compose up service-db
 
 
 # create dev and test keys

@@ -42,7 +42,7 @@ func (h *Handler) Tokens(c *gin.Context) {
 	}
 
 	// create fresh pair of tokens
-	tokens, err := h.TokenService.NewPairFromUser(ctx, u, refreshToken.ID.String())
+	tokens, err := h.TokenService.NewPairFromUser(ctx, u, refreshToken.ID)
 
 	if err != nil {
 		log.Printf("Failed to create tokens for user: %+v. Error: %v\n", u, err.Error())

@@ -5,7 +5,6 @@ import (
 
 	"crypto-auto-invest/model"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -15,7 +14,7 @@ type MockUserRepository struct {
 }
 
 // FindByID is mock of UserRepository FindByID
-func (m *MockUserRepository) FindByID(ctx context.Context, uid uuid.UUID) (*model.User, error) {
+func (m *MockUserRepository) FindByID(ctx context.Context, uid string) (*model.User, error) {
 	ret := m.Called(ctx, uid)
 
 	var r0 *model.User
@@ -59,7 +58,18 @@ func (m *MockUserRepository) FindByEmail(ctx context.Context, email string) (*mo
 	return r0, r1
 }
 
-func (m *MockUserService) UpdateDetails(ctx context.Context, u *model.User) error {
+func (m *MockUserRepository) Update(ctx context.Context, u *model.User) error {
+	ret := m.Called(ctx, u)
+
+	var r0 error
+	if ret.Get(0) != nil {
+		r0 = ret.Get(0).(error)
+	}
+
+	return r0
+}
+
+func (m *MockUserRepository) Patch(ctx context.Context, u *model.User) error {
 	ret := m.Called(ctx, u)
 
 	var r0 error

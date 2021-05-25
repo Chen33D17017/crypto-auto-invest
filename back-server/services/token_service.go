@@ -42,8 +42,8 @@ func NewTokenService(c *TSConfig) model.TokenService {
 func (s *tokenService) NewPairFromUser(ctx context.Context, u *model.User, prevTokenID string) (*model.TokenPair, error) {
 
 	if prevTokenID != "" {
-		if err := s.TokenRepository.DeleteRefreshToken(ctx, u.UID.String(), prevTokenID); err != nil {
-			log.Printf("Could not delete previous refreshToken for uid: %v, tokenID: %v\n", u.UID.String(), prevTokenID)
+		if err := s.TokenRepository.DeleteRefreshToken(ctx, u.UID, prevTokenID); err != nil {
+			log.Printf("Could not delete previous refreshToken for uid: %v, tokenID: %v\n", u.UID, prevTokenID)
 		}
 	}
 
@@ -60,7 +60,7 @@ func (s *tokenService) NewPairFromUser(ctx context.Context, u *model.User, prevT
 		return nil, apperrors.NewInternal()
 	}
 
-	if err := s.TokenRepository.SetRefreshToken(ctx, u.UID.String(), refreshToken.ID.String(), refreshToken.ExpiresIn); err != nil {
+	if err := s.TokenRepository.SetRefreshToken(ctx, u.UID, refreshToken.ID, refreshToken.ExpiresIn); err != nil {
 		log.Printf("Error storing tokenID for uid: %v. Error: %v", u.UID, err.Error())
 		return nil, apperrors.NewInternal()
 	}
@@ -102,11 +102,11 @@ func (s *tokenService) ValidateRefreshToken(tokenString string) (*model.RefreshT
 
 	return &model.RefreshToken{
 		SS:  tokenString,
-		ID:  tokenUUID,
+		ID:  tokenUUID.String(),
 		UID: claims.UID,
 	}, nil
 }
 
-func (s *tokenService) Signout(ctx context.Context, uid uuid.UUID) error {
-	return s.TokenRepository.DeleteUserRefreshTokens(ctx, uid.String())
+func (s *tokenService) Signout(ctx context.Context, uid string) error {
+	return s.TokenRepository.DeleteUserRefreshTokens(ctx, uid)
 }

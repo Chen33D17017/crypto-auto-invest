@@ -41,16 +41,16 @@ func generateIDToken(u *model.User, key *rsa.PrivateKey, exp int64) (string, err
 
 type refreshTokenData struct {
 	SS        string
-	ID        uuid.UUID
+	ID        string
 	ExpiresIn time.Duration
 }
 
 type refreshTokenCustomClaims struct {
-	UID uuid.UUID `json:"uid"`
+	UID string `json:"uid"`
 	jwt.StandardClaims
 }
 
-func generateRefreshToken(uid uuid.UUID, key string, exp int64) (*refreshTokenData, error) {
+func generateRefreshToken(uid string, key string, exp int64) (*refreshTokenData, error) {
 	currentTime := time.Now()
 	tokenExp := currentTime.Add(time.Duration(exp) * time.Second)
 	tokenID, err := uuid.NewRandom()
@@ -79,7 +79,7 @@ func generateRefreshToken(uid uuid.UUID, key string, exp int64) (*refreshTokenDa
 
 	return &refreshTokenData{
 		SS:        ss,
-		ID:        tokenID,
+		ID:        tokenID.String(),
 		ExpiresIn: tokenExp.Sub(currentTime),
 	}, nil
 }

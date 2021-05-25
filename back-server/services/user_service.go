@@ -5,25 +5,26 @@ import (
 	"crypto-auto-invest/model"
 	"crypto-auto-invest/model/apperrors"
 	"log"
-
-	"github.com/google/uuid"
 )
 
 type userService struct {
 	UserRepository model.UserRepository
+	WalletService  model.WalletService
 }
 
 type USConfig struct {
 	UserRepository model.UserRepository
+	WalletService  model.WalletService
 }
 
 func NewUserService(c *USConfig) model.UserService {
 	return &userService{
 		UserRepository: c.UserRepository,
+		WalletService:  c.WalletService,
 	}
 }
 
-func (s *userService) Get(ctx context.Context, uid uuid.UUID) (*model.User, error) {
+func (s *userService) Get(ctx context.Context, uid string) (*model.User, error) {
 	u, err := s.UserRepository.FindByID(ctx, uid)
 	return u, err
 }
@@ -39,6 +40,21 @@ func (s *userService) Signup(ctx context.Context, u *model.User) error {
 	u.Password = pw
 
 	if err := s.UserRepository.Create(ctx, u); err != nil {
+		return err
+	}
+
+	target, err := s.UserRepository.FindByEmail(ctx, u.Email)
+
+	// Add jpy, btc, eth automatically
+	if _, err := s.WalletService.AddWallet(ctx, target.UID, "jpy"); err != nil {
+		return err
+	}
+
+	if _, err := s.WalletService.AddWallet(ctx, target.UID, "btc"); err != nil {
+		return err
+	}
+
+	if _, err := s.WalletService.AddWallet(ctx, target.UID, "eth"); err != nil {
 		return err
 	}
 
@@ -70,7 +86,6 @@ func (s *userService) Signin(ctx context.Context, u *model.User) error {
 }
 
 func (s *userService) UpdateDetails(ctx context.Context, u *model.User) error {
-	// Update user in UserRepository
 	err := s.UserRepository.Update(ctx, u)
 
 	if err != nil {
@@ -78,4 +93,13 @@ func (s *userService) UpdateDetails(ctx context.Context, u *model.User) error {
 	}
 
 	return nil
+}
+
+func (s *userService) PatchDetails(ctx context.Context, u *model.User) (*model.User, error) {
+	err := s.UserRepository.Patch(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.UserRepository.FindByID(ctx, u.UID)
 }

@@ -1,0 +1,73 @@
+package services
+
+import (
+	"context"
+	"crypto-auto-invest/model"
+)
+
+type walletService struct {
+	WalletRepository model.WalletRepository
+}
+
+type WAConfig struct {
+	WalletRepository model.WalletRepository
+}
+
+func NewWalletService(c *WAConfig) model.WalletService {
+	return &walletService{
+		WalletRepository: c.WalletRepository,
+	}
+}
+
+func (w *walletService) AddWallet(ctx context.Context, uid string, currencyName string) (*model.Wallet, error) {
+	var rst *model.Wallet
+	cid, err := w.WalletRepository.GetCurrencyID(ctx, currencyName)
+	if err != nil {
+		return nil, err
+	}
+	err = w.WalletRepository.AddWallet(ctx, uid, cid)
+	if err != nil {
+		return nil, err
+	}
+
+	rst, err = w.WalletRepository.GetWellet(ctx, uid, currencyName)
+	if err != nil {
+		return nil, err
+	}
+	return rst, nil
+}
+
+func (w *walletService) GetUserWallet(ctx context.Context, uid string, currencyName string) (*model.Wallet, error) {
+	var rst *model.Wallet
+	rst, err := w.WalletRepository.GetWellet(ctx, uid, currencyName)
+	if err != nil {
+		return nil, err
+	}
+	return rst, nil
+}
+
+func (w *walletService) GetWallets(ctx context.Context, uid string) (*[]model.Wallet, error) {
+	rst, err := w.WalletRepository.GetWallets(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	return rst, nil
+}
+
+func (w *walletService) ChangeMoney(ctx context.Context, uid string, currencyName string, amount float64) (*model.Wallet, error) {
+	var rst *model.Wallet
+	rst, err := w.WalletRepository.GetWellet(ctx, uid, currencyName)
+	if err != nil {
+		return nil, err
+	}
+
+	rst.Amount += amount
+	if rst.Amount < 0 {
+		return nil, err
+	}
+	err = w.WalletRepository.UpdateAmount(ctx, rst.WID, rst.Amount)
+	if err != nil {
+		return nil, err
+	}
+	return rst, nil
+}

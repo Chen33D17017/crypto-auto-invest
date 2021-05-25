@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"crypto-auto-invest/handler"
+	"crypto-auto-invest/model"
 	"crypto-auto-invest/repository"
 	"crypto-auto-invest/services"
 	"fmt"
@@ -13,6 +15,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 )
 
 func inject(d *dataSources) (*gin.Engine, error) {
@@ -23,13 +26,98 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	 */
 	userRepository := repository.NewUserRepository(d.DB)
 	tokenRepository := repository.NewTokenRepository(d.RedisClient)
+	cronJobManager := repository.NewCronJobManager(d.RedisClient)
+	walletRepository := repository.NewWalletRepository(d.DB)
+	tradeRepository := repository.NewTradeRepository(d.DB)
+	cronRepository := repository.NewCronRepository(d.DB)
+	autoTradeRepository := repository.NewAutoTradeRepository(d.DB)
 
 	/*
 	 * service layer
 	 */
+	walletService := services.NewWalletService(&services.WAConfig{
+		WalletRepository: walletRepository,
+	})
+
 	userService := services.NewUserService(&services.USConfig{
 		UserRepository: userRepository,
+		WalletService:  walletService,
 	})
+
+	tradeDelay := os.Getenv("DELAY")
+	td, err := strconv.ParseInt(tradeDelay, 0, 64)
+	infoWebhook := os.Getenv("INFO_WEBHOOK")
+	errorWebhook := os.Getenv("ERROR_WEBHOOK")
+	mode := os.Getenv("MODE")
+	var tradeService model.TradeService
+	if mode == "dev" {
+		tradeService = services.NewTradeService(&services.TSConifg{
+			TradeRepository:  tradeRepository,
+			WalletRepository: walletRepository,
+			InfoWebhook:      infoWebhook,
+			ErrorWebhook:     errorWebhook,
+			Delay:            time.Duration(time.Duration(td) * time.Second),
+		})
+	} else {
+		tradeService = services.NewMockTradeService()
+	}
+
+	// init cron job manager
+	cron := cron.New()
+
+	cron.Start()
+	cronService := services.NewCronService(&services.CSConfig{
+		CronRepository:   cronRepository,
+		UserRepository:   userRepository,
+		WalletRepository: walletRepository,
+		TradeService:     tradeService,
+		CronJobManager:   cronJobManager,
+		Cron:             cron,
+	})
+
+	jobs, err := cronRepository.GetAllCrons()
+
+	if err != nil {
+		log.Fatalf("Fail to init cron job manager: %s\n", err)
+	}
+
+	log.Printf("Setting %v cron jobs for system\n", len(*jobs))
+	for _, job := range *jobs {
+		ctx := context.TODO()
+		cronService.AddCronFunc(ctx, &job)
+	}
+
+	tradeRateApi := os.Getenv("TRADE_RATE_API")
+	maxRate := os.Getenv("MAX_RATE")
+	autoTradeTimePattern := os.Getenv("AUTO_TRADE_TIME")
+	rate, err := strconv.ParseFloat(maxRate, 64)
+	if err != nil {
+		log.Fatalf("Fail to load max rate on auto trade")
+	}
+	autoTradeService := services.NewAutoTradeService(&services.ATSConifg{
+		TradeService:        tradeService,
+		WalletRepository:    walletRepository,
+		UserRepository:      userRepository,
+		AutoTradeRepository: autoTradeRepository,
+		CronJobManager:      cronJobManager,
+		Cron:                cron,
+		TimePattern:         autoTradeTimePattern,
+		TradeRateApi:        tradeRateApi,
+		MaxRate:             rate,
+	})
+
+	settings, err := autoTradeRepository.GetAllAutoTrade()
+	if err != nil {
+		log.Fatalf("Fail to load auto trade setting: %s\n", err.Error())
+	}
+	log.Printf("Load auto buy setting number: %v\n", len(*settings))
+	for _, setting := range *settings {
+		ctx := context.TODO()
+		err = autoTradeService.AddCronFunc(ctx, setting)
+		if err != nil {
+			log.Fatalf("Fail to load auto trade setting: %s\n", err.Error())
+		}
+	}
 
 	// load rsa keys
 	privKeyFile := os.Getenv("PRIV_KEY_FILE")
@@ -97,11 +185,15 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	}
 
 	handler.NewHandler(&handler.Config{
-		R:               router,
-		UserService:     userService,
-		TokenService:    tokenService,
-		BaseURL:         baseURL,
-		TimeoutDuration: time.Duration(time.Duration(ht) * time.Second),
+		R:                router,
+		UserService:      userService,
+		TokenService:     tokenService,
+		WalletService:    walletService,
+		TradeService:     tradeService,
+		CronService:      cronService,
+		AutoTradeService: autoTradeService,
+		BaseURL:          baseURL,
+		TimeoutDuration:  time.Duration(time.Duration(ht) * time.Second),
 	})
 
 	return router, nil
