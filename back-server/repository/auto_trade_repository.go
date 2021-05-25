@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	queryAddAutoTrade    = "INSERT INTO auto_trades(uid, type_id) VALUES(?, ?);"
-	queryDeleteAutoTrade = "DELETE FROM auto_trades WHERE uid=? and type_id=?;"
+	queryAddAutoTrade    = "INSERT INTO auto_trades(uid, crypto_id) VALUES(?, ?);"
+	queryDeleteAutoTrade = "DELETE FROM auto_trades WHERE uid=? and crypto_id=?;"
 	queryGetAutoTrades   = "SELECT * FROM auto_trades_view WHERE uid=?"
-	queryGetAutoTrade    = "SELECT * FROM auto_trades_view WHERE uid=? and type=?"
+	queryGetAutoTrade    = "SELECT * FROM auto_trades_view WHERE uid=? and crypto_name=?"
 	queryGetAllAutoTrade = "SELECT * FROM auto_trades_view"
 )
 

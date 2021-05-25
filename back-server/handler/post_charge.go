@@ -10,8 +10,8 @@ import (
 )
 
 type changeWalletReq struct {
-	Type   string  `json:"crypto_type" binding:"required,lowercase"`
-	Amount float64 `json:"amount" binding:"required"`
+	CryptoName string  `json:"crypto_name" binding:"required,lowercase"`
+	Amount     float64 `json:"amount" binding:"required"`
 }
 
 func (h *Handler) Charge(c *gin.Context) {
@@ -35,10 +35,10 @@ func (h *Handler) Charge(c *gin.Context) {
 	uid := user.(*model.User).UID
 
 	ctx := c.Request.Context()
-	wallet, err := h.WalletService.ChangeMoney(ctx, uid, req.Type, req.Amount)
+	wallet, err := h.WalletService.ChangeMoney(ctx, uid, req.CryptoName, req.Amount)
 
 	if err != nil {
-		log.Printf("Fail to change Wallet value on %s to %v, err: %v\n", req.Type, uid, err)
+		log.Printf("Fail to change Wallet value on %s to %v, err: %v\n", req.CryptoName, uid, err)
 		e := err.(*apperrors.Error)
 		c.JSON(e.Status(), gin.H{
 			"error": e,

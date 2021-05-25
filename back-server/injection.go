@@ -108,14 +108,14 @@ func inject(d *dataSources) (*gin.Engine, error) {
 
 	settings, err := autoTradeRepository.GetAllAutoTrade()
 	if err != nil {
-		log.Fatalln("Fail to load auto trade setting")
+		log.Fatalf("Fail to load auto trade setting: %s\n", err.Error())
 	}
 	log.Printf("Load auto buy setting number: %v\n", len(*settings))
 	for _, setting := range *settings {
 		ctx := context.TODO()
 		err = autoTradeService.AddCronFunc(ctx, setting)
 		if err != nil {
-			log.Fatalln("Fail to load auto trade setting")
+			log.Fatalf("Fail to load auto trade setting: %s\n", err.Error())
 		}
 	}
 

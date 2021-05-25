@@ -10,7 +10,7 @@ import (
 )
 
 type addWalletReq struct {
-	Type string `json:"crypto_type" binding:"required,lowercase"`
+	CryptoName string `json:"crypto_name" binding:"required,lowercase"`
 }
 
 func (h *Handler) AddWallet(c *gin.Context) {
@@ -34,10 +34,10 @@ func (h *Handler) AddWallet(c *gin.Context) {
 	uid := user.(*model.User).UID
 
 	ctx := c.Request.Context()
-	wallet, err := h.WalletService.AddWallet(ctx, uid, req.Type)
+	wallet, err := h.WalletService.AddWallet(ctx, uid, req.CryptoName)
 
 	if err != nil {
-		log.Printf("Fail to Add Wallet %s to %v, err: %v\n", req.Type, uid, err)
+		log.Printf("Fail to Add Wallet %s to %v, err: %v\n", req.CryptoName, uid, err)
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err,
 		})

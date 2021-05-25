@@ -11,7 +11,7 @@ import (
 
 type updateCronReq struct {
 	ID          string  `json:"id" binding:"required"`
-	Type        string  `json:"type" binding:"required,lowercase"`
+	CryptoName  string  `json:"crypto_name" binding:"required,lowercase"`
 	Amount      float64 `json:"amount" binding:"required"`
 	Timepattern string  `json:"time_pattern" binding:"required"`
 }
@@ -37,7 +37,7 @@ func (h *Handler) UpdateCron(c *gin.Context) {
 	cb := &model.Cron{
 		ID:          req.ID,
 		UID:         user.(*model.User).UID,
-		Type:        req.Type,
+		CryptoName:  req.CryptoName,
 		Amount:      req.Amount,
 		TimePattern: req.Timepattern,
 	}

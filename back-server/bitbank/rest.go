@@ -97,12 +97,12 @@ func CheckAssets(s model.Secret) ([]model.Asset, error) {
 	return response.Data.Assets, nil
 }
 
-func MakeTrade(s model.Secret, assetType string, buy_sell string, amount float64) (model.Order, error) {
+func MakeTrade(s model.Secret, cryptoName string, buy_sell string, amount float64) (model.Order, error) {
 	url := fmt.Sprintf("/v1/user/spot/order")
 	var response model.OrderRst
 
 	order := model.OrderRequest{
-		Pair:   fmt.Sprintf("%s_jpy", assetType),
+		Pair:   fmt.Sprintf("%s_jpy", cryptoName),
 		Amount: fmt.Sprintf("%.4f", amount),
 		Side:   buy_sell,
 		Type:   "market",
@@ -117,24 +117,24 @@ func MakeTrade(s model.Secret, assetType string, buy_sell string, amount float64
 	return response.Data, nil
 }
 
-func BuyWithJPY(s model.Secret, assetType string, JPY int64) (model.Order, error) {
-	cryptmsg, err := GetPrice(assetType)
+func BuyWithJPY(s model.Secret, cryptoName string, JPY int64) (model.Order, error) {
+	cryptmsg, err := GetPrice(cryptoName)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	cryptPrice, _ := strconv.Atoi(cryptmsg.Buy)
 	amount := float64(JPY) / float64(cryptPrice)
 
-	return MakeTrade(s, assetType, "buy", amount)
+	return MakeTrade(s, cryptoName, "buy", amount)
 }
 
-func SellToJPY(s model.Secret, assetType string, amount float64) (model.Order, error) {
-	return MakeTrade(s, assetType, "sell", amount)
+func SellToJPY(s model.Secret, cryptoName string, amount float64) (model.Order, error) {
+	return MakeTrade(s, cryptoName, "sell", amount)
 }
 
-func GetTradeHistory(s model.Secret, assetType string) ([]model.Trade, error) {
+func GetTradeHistory(s model.Secret, cryptoName string) ([]model.Trade, error) {
 	var response model.TradeRst
-	url := fmt.Sprintf("/v1/user/spot/trade_history?pair=%s_jpy", assetType)
+	url := fmt.Sprintf("/v1/user/spot/trade_history?pair=%s_jpy", cryptoName)
 	err := getRequest(s, url, &response)
 	if err != nil {
 		return nil, err
@@ -142,9 +142,9 @@ func GetTradeHistory(s model.Secret, assetType string) ([]model.Trade, error) {
 	return response.Data.Trades, nil
 }
 
-func GetOrderInfo(s model.Secret, assetType, order_id string) (model.Order, error) {
+func GetOrderInfo(s model.Secret, cryptoName, order_id string) (model.Order, error) {
 	var response model.OrderRst
-	url := fmt.Sprintf("/v1/user/spot/order?pair=%s_jpy&order_id=%s", assetType, order_id)
+	url := fmt.Sprintf("/v1/user/spot/order?pair=%s_jpy&order_id=%s", cryptoName, order_id)
 	err := getRequest(s, url, &response)
 	if err != nil {
 		return response.Data, err

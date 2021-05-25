@@ -52,7 +52,7 @@ func (h *Handler) GetWallet(c *gin.Context) {
 	uid := user.(*model.User).UID
 
 	ctx := c.Request.Context()
-	currencyName, ok := c.GetQuery("type")
+	cryptoName, ok := c.GetQuery("crypto_name")
 
 	if !ok {
 		log.Printf("Unable to extract currency type")
@@ -63,7 +63,7 @@ func (h *Handler) GetWallet(c *gin.Context) {
 		return
 	}
 
-	wallets, err := h.WalletService.GetUserWallet(ctx, uid, currencyName)
+	wallets, err := h.WalletService.GetUserWallet(ctx, uid, cryptoName)
 
 	if err != nil {
 		c.JSON(apperrors.Status(err), gin.H{

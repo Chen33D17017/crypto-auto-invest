@@ -54,7 +54,7 @@ func NewTradeService(c *TSConifg) model.TradeService {
 
 // Buy unit JPY
 // Sell unit crypto currency
-func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, side, assetType, orderType string) (bm.Order, error) {
+func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, side, cryptoName, orderType string) (bm.Order, error) {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
@@ -63,31 +63,31 @@ func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64,
 	var err error
 	switch side {
 	case "buy":
-		order, err = bitbank.BuyWithJPY(secret, assetType, int64(amount))
+		order, err = bitbank.BuyWithJPY(secret, cryptoName, int64(amount))
 	case "sell":
-		order, err = bitbank.SellToJPY(secret, assetType, amount)
+		order, err = bitbank.SellToJPY(secret, cryptoName, amount)
 	default:
 		return order, apperrors.NewInternal()
 	}
 	if err != nil {
-		s.SendTradeRst(fmt.Sprintf("SERVICE: Trade err with user: %s assetType: %s, Amount: %v, Side: %s\n", u.UID, assetType, amount, side), "error")
+		s.SendTradeRst(fmt.Sprintf("SERVICE: Trade err with user: %s cryptoName: %s, Amount: %v, Side: %s\n", u.UID, cryptoName, amount, side), "error")
 		return order, apperrors.NewInternal()
 	}
 
 	time.AfterFunc(s.Delay, func() {
-		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), assetType, orderType)
+		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), cryptoName, orderType)
 	})
 	return order, nil
 }
 
-func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, assetType, orderType string) error {
+func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName, orderType string) error {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
 	}
-	o, err := bitbank.GetOrderInfo(secret, assetType, orderID)
+	o, err := bitbank.GetOrderInfo(secret, cryptoName, orderID)
 	if err != nil {
-		s.SendTradeRst(fmt.Sprintf("%s fail to get order with assertType: %s, OrderID: %s", u.Name, assetType, orderID), "error")
+		s.SendTradeRst(fmt.Sprintf("%s fail to get order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
 		return apperrors.NewInternal()
 	}
 	var target model.Order
@@ -96,7 +96,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	amount, err := strconv.ParseFloat(o.StartAmount, 64)
 	if err != nil {
 		log.Printf("Fail to convert Amount")
-		s.SendTradeRst(fmt.Sprintf("%s fail to save order with assertType: %s, OrderID: %s", u.Name, assetType, orderID), "error")
+		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
 		return apperrors.NewBadRequest("Wrong struct on order")
 	}
 	amount = normalizeFloat(amount)
@@ -104,7 +104,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 
 	if err != nil {
 		log.Printf("Fail to convert AvgPrice")
-		s.SendTradeRst(fmt.Sprintf("%s fail to save order with assertType: %s, OrderID: %s", u.Name, assetType, orderID), "error")
+		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
 		return apperrors.NewBadRequest("Wrong struct on order")
 	}
 
@@ -113,7 +113,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	currencyWallet, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1])
 	if err1 != nil || err2 != nil {
 		log.Printf("Wrong cuncerrency with user %v", u.UID)
-		s.SendTradeRst(fmt.Sprintf("%s fail to save order with assertType: %s, OrderID: %s", u.Name, assetType, orderID), "error")
+		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
 		return apperrors.NewInternal()
 	}
 	JPY := normalizeFloat(amount * avgPrice)
@@ -136,7 +136,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 
 	err = s.TradeRepository.SaveOrder(ctx, &target)
 	if err != nil {
-		s.SendTradeRst(fmt.Sprintf("%s fail to save order with assertType: %s, OrderID: %s", u.Name, assetType, orderID), "error")
+		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
 		log.Printf("Fail to Store Trade Result with %v err: %s\n", o.OrderId, err.Error())
 		return apperrors.NewInternal()
 	}

@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	queryAddWallet     = "INSERT INTO wallets(uid, type_id, amount) VALUES(?, ?, ?)"
+	queryAddWallet     = "INSERT INTO wallets(uid, crypto_id, amount) VALUES(?, ?, ?)"
 	queryGetWalletByID = "SELECT * FROM wallets_view WHERE wid=?"
-	queryGetWallet     = `SELECT * FROM wallets_view WHERE uid=? AND type=?`
+	queryGetWallet     = `SELECT * FROM wallets_view WHERE uid=? AND crypto_name=?`
 	queryGetWallets    = `SELECT * FROM wallets_view WHERE uid=?`
 	queryUpdateAmount  = `UPDATE wallets SET amount=? WHERE wid=?`
-	queryGetCurrencyID = `SELECT id FROM currency_type WHERE name=?`
+	queryGetCurrencyID = `SELECT id FROM crypto_name WHERE name=?`
 )
 
 type walletRepository struct {
@@ -89,7 +89,7 @@ func (r *walletRepository) GetCurrencyID(ctx context.Context, currencyName strin
 	var rst int
 	err := r.DB.GetContext(ctx, &rst, queryGetCurrencyID, currencyName)
 	if err != nil {
-		log.Printf("REPOSITORY: Unable to get currency type: %s err: %s\n", currencyName, err.Error())
+		log.Printf("REPOSITORY: Unable to get currency name: %s err: %s\n", currencyName, err.Error())
 		return 0, apperrors.NewNotFound("currency", currencyName)
 	}
 	return rst, nil

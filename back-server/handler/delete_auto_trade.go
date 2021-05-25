@@ -23,7 +23,7 @@ func (h *Handler) DeleteAutoTrade(c *gin.Context) {
 	uid := user.(*model.User).UID
 
 	ctx := c.Request.Context()
-	currencyName, ok := c.GetQuery("type")
+	currencyName, ok := c.GetQuery("crypto_name")
 
 	if !ok {
 		log.Printf("Unable to extract currecncy type")

@@ -41,12 +41,12 @@ func NewCronService(c *CSConfig) model.CronService {
 // https://github.com/robfig/cron/blob/bc59245fe10efaed9d51b56900192527ed733435/cron.go#L50
 // https://pkg.go.dev/github.com/robfig/cron/v3@v3.0.0?utm_source=gopls#EntryID
 func (s *cronService) AddCron(ctx context.Context, cb *model.Cron) (*model.Cron, error) {
-	currencyID, err := s.WalletRepository.GetCurrencyID(ctx, cb.Type)
+	currencyID, err := s.WalletRepository.GetCurrencyID(ctx, cb.CryptoName)
 	err = s.CronRepository.AddCron(ctx, cb, currencyID)
 	if err != nil {
 		return nil, err
 	}
-	cid, err := s.CronRepository.GetCronID(ctx, cb.UID, cb.Type, cb.TimePattern)
+	cid, err := s.CronRepository.GetCronID(ctx, cb.UID, cb.CryptoName, cb.TimePattern)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (s *cronService) GetCrons(ctx context.Context, uid string) (*[]model.Cron, 
 }
 
 func (s *cronService) UpdateCron(ctx context.Context, cb *model.Cron) error {
-	currencyID, err := s.WalletRepository.GetCurrencyID(ctx, cb.Type)
+	currencyID, err := s.WalletRepository.GetCurrencyID(ctx, cb.CryptoName)
 	err = s.CronRepository.UpdateCron(ctx, cb, currencyID)
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (s *cronService) AddCronFunc(ctx context.Context, cb *model.Cron) error {
 	u, _ := s.UserRepository.FindByID(ctx, cb.UID)
 	entityID, err := s.Cron.AddFunc(cb.TimePattern, func() {
 		ctxTODO := context.TODO()
-		s.TradeService.Trade(ctxTODO, u, cb.Amount, "buy", cb.Type, "fixed")
+		s.TradeService.Trade(ctxTODO, u, cb.Amount, "buy", cb.CryptoName, "fixed")
 	})
 	if err != nil {
 		return err

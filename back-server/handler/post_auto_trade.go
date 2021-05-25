@@ -10,7 +10,7 @@ import (
 )
 
 type addAutoTradeReq struct {
-	Type string `json:"type" binding:"required,lowercase"`
+	CryptoName string `json:"crypto_name" binding:"required,lowercase"`
 }
 
 func (h *Handler) AddAutoTrade(c *gin.Context) {
@@ -33,10 +33,10 @@ func (h *Handler) AddAutoTrade(c *gin.Context) {
 
 	ctx := c.Request.Context()
 	uid := user.(*model.User).UID
-	err := h.AutoTradeService.AddAutoTrade(ctx, uid, req.Type)
+	err := h.AutoTradeService.AddAutoTrade(ctx, uid, req.CryptoName)
 
 	if err != nil {
-		log.Printf("Fail to Add Auto Trade %s to %v, err: %v\n", req.Type, uid, err)
+		log.Printf("Fail to Add Auto Trade %s to %v, err: %v\n", req.CryptoName, uid, err)
 		e := err.(*apperrors.Error)
 		c.JSON(e.Status(), gin.H{
 			"error": e,
@@ -45,7 +45,7 @@ func (h *Handler) AddAutoTrade(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"uid":  uid,
-		"type": req.Type,
+		"uid":         uid,
+		"crypto_name": req.CryptoName,
 	})
 }

@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	queryAddCron     = "INSERT INTO crons(uid, type_id, amount, time_pattern) VALUES(?, ?, ?, ?);"
+	queryAddCron     = "INSERT INTO crons(uid, crypto_id, amount, time_pattern) VALUES(?, ?, ?, ?);"
 	queryGetCron     = "SELECT * FROM crons_view WHERE id=? and uid=?;"
 	queryGetCrons    = `SELECT * FROM crons_view WHERE uid=?;`
-	queryUpdateCron  = `UPDATE crons SET amount=?, type_id=?, time_pattern=? WHERE id=? and uid=?;`
+	queryUpdateCron  = `UPDATE crons SET amount=?, crypto_id=?, time_pattern=? WHERE id=? and uid=?;`
 	queryDeleteCron  = `DELETE FROM crons WHERE id=? and uid=?;`
-	queryGetCronID   = `SELECT * FROM crons_view WHERE uid=? and type=? and time_pattern=?`
+	queryGetCronID   = `SELECT * FROM crons_view WHERE uid=? and crypto_name=? and time_pattern=?`
 	queryGetAllCrons = `SELECT * FROM crons_view`
 )
 
@@ -91,11 +91,11 @@ func (r *cronRepository) DeleteCron(ctx context.Context, userID string, cronID s
 	return nil
 }
 
-func (r *cronRepository) GetCronID(ctx context.Context, uid, cryptoType, timePattern string) (string, error) {
+func (r *cronRepository) GetCronID(ctx context.Context, uid, cryptoName, timePattern string) (string, error) {
 	rst := &model.Cron{}
-	err := r.DB.GetContext(ctx, rst, queryGetCronID, uid, cryptoType, timePattern)
+	err := r.DB.GetContext(ctx, rst, queryGetCronID, uid, cryptoName, timePattern)
 	if err != nil {
-		log.Printf("REPOSITORY: Unable to get cron by (uid, type, pattern): (%s, %s, %s) err: %s", uid, cryptoType, timePattern, err)
+		log.Printf("REPOSITORY: Unable to get cron by (uid, type, pattern): (%s, %s, %s) err: %s", uid, cryptoName, timePattern, err)
 		return rst.ID, apperrors.NewInternal()
 	}
 	return rst.ID, nil

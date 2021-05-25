@@ -168,9 +168,9 @@ func (s *autoTradeService) AutoTrade(uid string, currencyName string) error {
 	}
 
 	req := model.TradeRateReq{
-		JPY:    jpyWallet.Amount,
-		Type:   currencyName,
-		Amount: wallet.Amount,
+		JPY:        jpyWallet.Amount,
+		CryptoName: currencyName,
+		Amount:     wallet.Amount,
 	}
 	resp, err := s.GetTradeRate(req)
 	if err != nil {
@@ -192,7 +192,7 @@ func (s *autoTradeService) AutoTrade(uid string, currencyName string) error {
 
 func (s *autoTradeService) AddCronFunc(ctx context.Context, setting model.AutoTrade) error {
 	entityID, err := s.Cron.AddFunc(s.TimePattern, func() {
-		s.AutoTrade(setting.UID, setting.Type)
+		s.AutoTrade(setting.UID, setting.CryptoName)
 	})
 	if err != nil {
 		return err

@@ -10,7 +10,7 @@ import (
 )
 
 type addCronReq struct {
-	Type        string  `json:"type" binding:"required,lowercase"`
+	CryptoName  string  `json:"crypto_name" binding:"required,lowercase"`
 	Amount      float64 `json:"amount" binding:"required"`
 	Timepattern string  `json:"time_pattern" binding:"required"`
 }
@@ -36,14 +36,14 @@ func (h *Handler) AddCron(c *gin.Context) {
 	ctx := c.Request.Context()
 	cb := &model.Cron{
 		UID:         user.(*model.User).UID,
-		Type:        req.Type,
+		CryptoName:  req.CryptoName,
 		Amount:      req.Amount,
 		TimePattern: req.Timepattern,
 	}
 	cron, err := h.CronService.AddCron(ctx, cb)
 
 	if err != nil {
-		log.Printf("Fail to Add cron %s to %v, err: %v\n", req.Type, cb.UID, err)
+		log.Printf("Fail to Add cron %s to %v, err: %v\n", req.CryptoName, cb.UID, err)
 		e := err.(*apperrors.Error)
 		c.JSON(e.Status(), gin.H{
 			"error": e,
