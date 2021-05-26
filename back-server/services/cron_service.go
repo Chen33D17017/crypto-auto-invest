@@ -109,7 +109,7 @@ func (s *cronService) DeleteCron(ctx context.Context, uid string, cronID string)
 
 func (s *cronService) AddCronFunc(ctx context.Context, cb *model.Cron) error {
 	u, _ := s.UserRepository.FindByID(ctx, cb.UID)
-	entityID, err := s.Cron.AddFunc(cb.TimePattern, func() {
+	entityID, err := s.Cron.AddFunc(fmt.Sprintf("CRON_TZ=Asia/Tokyo %s", cb.TimePattern), func() {
 		ctxTODO := context.TODO()
 		s.TradeService.Trade(ctxTODO, u, cb.Amount, "buy", cb.CryptoName, "fixed")
 	})
