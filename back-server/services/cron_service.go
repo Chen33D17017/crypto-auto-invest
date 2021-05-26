@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto-auto-invest/model"
 	"fmt"
+	"log"
 
 	"github.com/robfig/cron/v3"
 )
@@ -114,6 +115,7 @@ func (s *cronService) AddCronFunc(ctx context.Context, cb *model.Cron) error {
 		s.TradeService.Trade(ctxTODO, u, cb.Amount, "buy", cb.CryptoName, "fixed")
 	})
 	if err != nil {
+		log.Println("Fail to set cron job")
 		return err
 	}
 
