@@ -16,7 +16,7 @@ const (
 	queryGetAutoTrades    = "SELECT * FROM auto_trades_view WHERE uid=?"
 	queryGetAutoTrade     = "SELECT * FROM auto_trades_view WHERE uid=? and crypto_name=?"
 	queryGetAllAutoTrade  = "SELECT * FROM auto_trades_view"
-	queryGetAutoTradeUser = "SELECT uid FROM auto_trades_view WHERE crypto_name=?"
+	queryGetAutoTradeUser = "SELECT * FROM auto_trades_view WHERE crypto_name=?"
 )
 
 type autoTradeRepository struct {
@@ -86,8 +86,8 @@ func (r *autoTradeRepository) GetAllAutoTrade() (*[]model.AutoTrade, error) {
 	return rst, nil
 }
 
-func (r *autoTradeRepository) GetAutoTradeUser(ctx context.Context, currencyName string) (*[]string, error) {
-	rst := &[]string{}
+func (r *autoTradeRepository) GetAutoTradeUser(ctx context.Context, currencyName string) (*[]model.AutoTrade, error) {
+	rst := &[]model.AutoTrade{}
 	err := r.DB.SelectContext(ctx, rst, queryGetAutoTradeUser, currencyName)
 	if err != nil {
 		return rst, fmt.Errorf("REPOSITORY: Unable to get auto trade user err: %s", err)

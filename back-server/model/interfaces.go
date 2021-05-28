@@ -99,7 +99,7 @@ type AutoTradeRepository interface {
 	GetAutoTrades(ctx context.Context, uid string) (*[]AutoTrade, error)
 	GetAutoTrade(ctx context.Context, uid, currencyName string) (*AutoTrade, error)
 	GetAllAutoTrade() (*[]AutoTrade, error)
-	GetAutoTradeUser(ctx context.Context, currencyName string) (*[]string, error)
+	GetAutoTradeUser(ctx context.Context, currencyName string) (*[]AutoTrade, error)
 }
 
 type CronJobManager interface {

@@ -153,14 +153,14 @@ func (s *autoTradeService) GetTradeRate(reqBody model.TradeRateReq) (model.Trade
 
 func (s *autoTradeService) TradeWithRate(ctx context.Context, cryptoName string, action string, rate float64, strategy int) error {
 
-	uids, err := s.AutoTradeRepository.GetAutoTradeUser(ctx, cryptoName)
+	tradeSettings, err := s.AutoTradeRepository.GetAutoTradeUser(ctx, cryptoName)
 	if err != nil {
 		return apperrors.NewBadRequest("Fail to find auto trade user")
 	}
-	for _, uid := range *uids {
-		err := s.tradeWithRate(ctx, uid, cryptoName, action, rate, strategy)
+	for _, tradeSetting := range *tradeSettings {
+		err := s.tradeWithRate(ctx, tradeSetting.UID, cryptoName, action, rate, strategy)
 		if err != nil {
-			s.TradeService.SendTradeRst(fmt.Sprintf("Fail to trade user %s with strategy %v err: %s", uid, strategy, err.Error()), "error")
+			s.TradeService.SendTradeRst(fmt.Sprintf("Fail to trade user %s with strategy %v err: %s", tradeSetting.UID, strategy, err.Error()), "error")
 		}
 	}
 	return nil
