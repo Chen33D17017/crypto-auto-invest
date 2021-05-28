@@ -54,14 +54,14 @@ func NewTradeService(c *TSConifg) model.TradeService {
 
 // Buy unit JPY
 // Sell unit crypto currency
-func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, side, cryptoName, orderType string) (bm.Order, error) {
+func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
 	}
 	var order bm.Order
 	var err error
-	switch side {
+	switch action {
 	case "buy":
 		order, err = bitbank.BuyWithJPY(secret, cryptoName, int64(amount))
 	case "sell":
@@ -70,17 +70,17 @@ func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64,
 		return order, apperrors.NewInternal()
 	}
 	if err != nil {
-		s.SendTradeRst(fmt.Sprintf("SERVICE: Trade err with user: %s cryptoName: %s, Amount: %v, Side: %s\n", u.UID, cryptoName, amount, side), "error")
+		s.SendTradeRst(fmt.Sprintf("SERVICE: Trade err with user: %s cryptoName: %s, Amount: %v, Side: %s\n", u.UID, cryptoName, amount, action), "error")
 		return order, apperrors.NewInternal()
 	}
 
 	time.AfterFunc(s.Delay, func() {
-		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), cryptoName, orderType)
+		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), cryptoName, strategy)
 	})
 	return order, nil
 }
 
-func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName, orderType string) error {
+func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName string, strategy int) error {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
@@ -132,7 +132,6 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	}
 
 	target.Timestamp = time.Unix(o.OrderedAt/1000, 0).Format("2006-01-02 15:04:05")
-	target.Type = orderType
 
 	err = s.TradeRepository.SaveOrder(ctx, &target)
 	if err != nil {
@@ -145,7 +144,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		u.Name, o.Side, o.StartAmount, o.Pair, o.AveragePrice, JPY, time.Unix(o.OrderedAt/1000, 0).In(loc).Format(time.RFC822)), "info")
 
 	// Money movement between wallets when orderType is auto
-	if orderType == "auto" {
+	if strategy != 0 {
 		switch o.Side {
 		case "buy":
 			s.WalletRepository.UpdateAmount(ctx, JPYWallet.WID, -(JPY + target.Fee))

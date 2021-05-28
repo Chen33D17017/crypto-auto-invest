@@ -30,8 +30,8 @@ type WalletService interface {
 }
 
 type TradeService interface {
-	Trade(ctx context.Context, u *User, amount float64, side, cryptoName, orderType string) (bm.Order, error)
-	SaveOrder(ctx context.Context, u *User, orderID string, cryptoName, orderType string) error
+	Trade(ctx context.Context, u *User, amount float64, action, cryptoName string, strategy int) (bm.Order, error)
+	SaveOrder(ctx context.Context, u *User, orderID string, cryptoName string, strategy int) error
 	SendTradeRst(msg string, level string) error
 }
 

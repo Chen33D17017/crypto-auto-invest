@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	queryInsertTradeLog = `INSERT INTO orders (oid, uid, from_wid, from_amount, to_wid, to_amount, timestamp, fee, type) 
-							VALUES (:oid, :uid, :from_wid, :from_amount, :to_wid, :to_amount, :timestamp, :fee, :type)`
+	queryInsertTradeLog = `INSERT INTO orders (oid, uid, from_wid, from_amount, to_wid, to_amount, timestamp, fee, strategy) 
+							VALUES (:oid, :uid, :from_wid, :from_amount, :to_wid, :to_amount, :timestamp, :fee, :strategy)`
 )
 
 type tradeRepository struct {

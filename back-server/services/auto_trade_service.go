@@ -180,9 +180,9 @@ func (s *autoTradeService) AutoTrade(uid string, currencyName string) error {
 	if resp.Rate > 0 {
 		switch resp.Side {
 		case "buy":
-			_, err = s.TradeService.Trade(ctx, u, jpyWallet.Amount*resp.Rate, "buy", currencyName, "auto")
+			_, err = s.TradeService.Trade(ctx, u, jpyWallet.Amount*resp.Rate, "buy", currencyName, resp.Strategy)
 		case "sell":
-			_, err = s.TradeService.Trade(ctx, u, wallet.Amount*resp.Rate, "sell", currencyName, "auto")
+			_, err = s.TradeService.Trade(ctx, u, wallet.Amount*resp.Rate, "sell", currencyName, resp.Strategy)
 		default:
 			return nil
 		}
