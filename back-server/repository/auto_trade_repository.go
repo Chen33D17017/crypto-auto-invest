@@ -11,11 +11,12 @@ import (
 )
 
 const (
-	queryAddAutoTrade    = "INSERT INTO auto_trades(uid, crypto_id) VALUES(?, ?);"
-	queryDeleteAutoTrade = "DELETE FROM auto_trades WHERE uid=? and crypto_id=?;"
-	queryGetAutoTrades   = "SELECT * FROM auto_trades_view WHERE uid=?"
-	queryGetAutoTrade    = "SELECT * FROM auto_trades_view WHERE uid=? and crypto_name=?"
-	queryGetAllAutoTrade = "SELECT * FROM auto_trades_view"
+	queryAddAutoTrade     = "INSERT INTO auto_trades(uid, crypto_id) VALUES(?, ?);"
+	queryDeleteAutoTrade  = "DELETE FROM auto_trades WHERE uid=? and crypto_id=?;"
+	queryGetAutoTrades    = "SELECT * FROM auto_trades_view WHERE uid=?"
+	queryGetAutoTrade     = "SELECT * FROM auto_trades_view WHERE uid=? and crypto_name=?"
+	queryGetAllAutoTrade  = "SELECT * FROM auto_trades_view"
+	queryGetAutoTradeUser = "SELECT uid FROM auto_trades_view WHERE crypto_name=?"
 )
 
 type autoTradeRepository struct {
@@ -81,6 +82,15 @@ func (r *autoTradeRepository) GetAllAutoTrade() (*[]model.AutoTrade, error) {
 	err := r.DB.Select(rst, queryGetAllAutoTrade)
 	if err != nil {
 		return rst, fmt.Errorf("REPOSITORY: Unable to get auto trade setting err: %s", err)
+	}
+	return rst, nil
+}
+
+func (r *autoTradeRepository) GetAutoTradeUser(ctx context.Context, currencyName string) (*[]string, error) {
+	rst := &[]string{}
+	err := r.DB.SelectContext(ctx, rst, queryGetAutoTradeUser, currencyName)
+	if err != nil {
+		return rst, fmt.Errorf("REPOSITORY: Unable to get auto trade user err: %s", err)
 	}
 	return rst, nil
 }

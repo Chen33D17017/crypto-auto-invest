@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto-auto-invest/model"
+	"crypto-auto-invest/model/apperrors"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -50,8 +51,8 @@ func NewAutoTradeService(c *ATSConifg) model.AutoTradeService {
 	}
 }
 
-func (s *autoTradeService) AddAutoTrade(ctx context.Context, uid, currencyName string) error {
-	cID, err := s.WalletRepository.GetCurrencyID(ctx, currencyName)
+func (s *autoTradeService) AddAutoTrade(ctx context.Context, uid, cryptoName string) error {
+	cID, err := s.WalletRepository.GetCurrencyID(ctx, cryptoName)
 	if err != nil {
 		return err
 	}
@@ -60,7 +61,7 @@ func (s *autoTradeService) AddAutoTrade(ctx context.Context, uid, currencyName s
 		return err
 	}
 
-	setting, err := s.AutoTradeRepository.GetAutoTrade(ctx, uid, currencyName)
+	setting, err := s.AutoTradeRepository.GetAutoTrade(ctx, uid, cryptoName)
 	if err != nil {
 		return err
 	}
@@ -71,8 +72,8 @@ func (s *autoTradeService) AddAutoTrade(ctx context.Context, uid, currencyName s
 	return nil
 }
 
-func (s *autoTradeService) DeleteAutoTrade(ctx context.Context, uid, currencyName string) error {
-	setting, err := s.AutoTradeRepository.GetAutoTrade(ctx, uid, currencyName)
+func (s *autoTradeService) DeleteAutoTrade(ctx context.Context, uid, cryptoName string) error {
+	setting, err := s.AutoTradeRepository.GetAutoTrade(ctx, uid, cryptoName)
 	if err != nil {
 		return err
 	}
@@ -82,7 +83,7 @@ func (s *autoTradeService) DeleteAutoTrade(ctx context.Context, uid, currencyNam
 		return err
 	}
 
-	cID, err := s.WalletRepository.GetCurrencyID(ctx, currencyName)
+	cID, err := s.WalletRepository.GetCurrencyID(ctx, cryptoName)
 	if err != nil {
 		return err
 	}
@@ -150,7 +151,52 @@ func (s *autoTradeService) GetTradeRate(reqBody model.TradeRateReq) (model.Trade
 	return rst, nil
 }
 
-func (s *autoTradeService) AutoTrade(uid string, currencyName string) error {
+func (s *autoTradeService) TradeWithRate(ctx context.Context, cryptoName string, action string, rate float64, strategy int) error {
+
+	uids, err := s.AutoTradeRepository.GetAutoTradeUser(ctx, cryptoName)
+	if err != nil {
+		return apperrors.NewBadRequest("Fail to find auto trade user")
+	}
+	for _, uid := range *uids {
+		err := s.tradeWithRate(ctx, uid, cryptoName, action, rate, strategy)
+		if err != nil {
+			s.TradeService.SendTradeRst(fmt.Sprintf("Fail to trade user %s with strategy %v err: %s", uid, strategy, err.Error()), "error")
+		}
+	}
+	return nil
+}
+
+func (s *autoTradeService) tradeWithRate(ctx context.Context, uid string, cryptoName string, action string, rate float64, strategy int) error {
+	u, err := s.UserRepository.FindByID(ctx, uid)
+	if err != nil {
+		return fmt.Errorf("autoTradeWithRate: %s", err.Error())
+	}
+
+	jpyWallet, err := s.WalletRepository.GetWellet(ctx, uid, "jpy")
+	if err != nil {
+		return fmt.Errorf("AutoTrade get jpy wallet err: %s", err.Error())
+	}
+
+	wallet, err := s.WalletRepository.GetWellet(ctx, uid, cryptoName)
+	if err != nil {
+		return fmt.Errorf("AutoTrade: get %s wallet err: %s\n", cryptoName, err.Error())
+	}
+
+	if rate > 0 {
+		switch action {
+		case "buy":
+			_, err = s.TradeService.Trade(ctx, u, jpyWallet.Amount*rate, "buy", cryptoName, strategy)
+		case "sell":
+			_, err = s.TradeService.Trade(ctx, u, wallet.Amount*rate, "sell", cryptoName, strategy)
+		default:
+			return nil
+		}
+	}
+
+	return nil
+}
+
+func (s *autoTradeService) AutoTrade(uid string, cryptoName string) error {
 	ctx := context.TODO()
 	u, err := s.UserRepository.FindByID(ctx, uid)
 	if err != nil {
@@ -162,14 +208,14 @@ func (s *autoTradeService) AutoTrade(uid string, currencyName string) error {
 		return fmt.Errorf("AutoTrade get jpy wallet err: %s", err.Error())
 	}
 
-	wallet, err := s.WalletRepository.GetWellet(ctx, uid, currencyName)
+	wallet, err := s.WalletRepository.GetWellet(ctx, uid, cryptoName)
 	if err != nil {
-		return fmt.Errorf("AutoTrade: get %s wallet err: %s\n", currencyName, err.Error())
+		return fmt.Errorf("AutoTrade: get %s wallet err: %s\n", cryptoName, err.Error())
 	}
 
 	req := model.TradeRateReq{
 		JPY:        jpyWallet.Amount,
-		CryptoName: currencyName,
+		CryptoName: cryptoName,
 		Amount:     wallet.Amount,
 	}
 	resp, err := s.GetTradeRate(req)
@@ -180,9 +226,9 @@ func (s *autoTradeService) AutoTrade(uid string, currencyName string) error {
 	if resp.Rate > 0 {
 		switch resp.Side {
 		case "buy":
-			_, err = s.TradeService.Trade(ctx, u, jpyWallet.Amount*resp.Rate, "buy", currencyName, resp.Strategy)
+			_, err = s.TradeService.Trade(ctx, u, jpyWallet.Amount*resp.Rate, "buy", cryptoName, resp.Strategy)
 		case "sell":
-			_, err = s.TradeService.Trade(ctx, u, wallet.Amount*resp.Rate, "sell", currencyName, resp.Strategy)
+			_, err = s.TradeService.Trade(ctx, u, wallet.Amount*resp.Rate, "sell", cryptoName, resp.Strategy)
 		default:
 			return nil
 		}

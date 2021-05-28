@@ -53,6 +53,7 @@ type AutoTradeService interface {
 	AutoTrade(uid string, currencyName string) error
 	AddCronFunc(ctx context.Context, setting AutoTrade) error
 	RemoveCronFunc(ctx context.Context, autoTradeID string) error
+	TradeWithRate(ctx context.Context, currencyName string, action string, rate float64, strategy int) error
 }
 
 type UserRepository interface {
@@ -98,6 +99,7 @@ type AutoTradeRepository interface {
 	GetAutoTrades(ctx context.Context, uid string) (*[]AutoTrade, error)
 	GetAutoTrade(ctx context.Context, uid, currencyName string) (*AutoTrade, error)
 	GetAllAutoTrade() (*[]AutoTrade, error)
+	GetAutoTradeUser(ctx context.Context, currencyName string) (*[]string, error)
 }
 
 type CronJobManager interface {
