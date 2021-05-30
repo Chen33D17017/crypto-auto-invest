@@ -91,8 +91,11 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		return apperrors.NewInternal()
 	}
 	var target model.Order
-	target.UID = u.UID
 	target.OID = fmt.Sprintf("%v", o.OrderId)
+	target.UID = u.UID
+	target.Piar = o.Pair
+	target.Action = o.Side
+
 	amount, err := strconv.ParseFloat(o.StartAmount, 64)
 	if err != nil {
 		log.Printf("Fail to convert Amount")
@@ -100,13 +103,16 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		return apperrors.NewBadRequest("Wrong struct on order")
 	}
 	amount = normalizeFloat(amount)
-	avgPrice, err := strconv.ParseFloat(o.AveragePrice, 64)
+	target.Amount = amount
 
+	avgPrice, err := strconv.ParseFloat(o.AveragePrice, 64)
 	if err != nil {
 		log.Printf("Fail to convert AvgPrice")
 		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
 		return apperrors.NewBadRequest("Wrong struct on order")
 	}
+	target.Price = avgPrice
+	target.Timestamp = time.Unix(o.OrderedAt/1000, 0).Format("2006-01-02 15:04:05")
 
 	currencies := strings.Split(o.Pair, "_")
 	JPYWallet, err1 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[0])
@@ -118,20 +124,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	}
 	JPY := normalizeFloat(amount * avgPrice)
 	target.Fee = normalizeFloat(amount * avgPrice * 0.0012)
-	switch o.Side {
-	case "buy":
-		target.FromAmount = JPY
-		target.ToAmount = amount
-		target.FromWallet = JPYWallet.WID
-		target.ToWallet = currencyWallet.WID
-	case "sell":
-		target.FromAmount = amount
-		target.ToAmount = JPY
-		target.FromWallet = currencyWallet.WID
-		target.ToWallet = JPYWallet.WID
-	}
-
-	target.Timestamp = time.Unix(o.OrderedAt/1000, 0).Format("2006-01-02 15:04:05")
+	target.Strategy = strategy
 
 	err = s.TradeRepository.SaveOrder(ctx, &target)
 	if err != nil {
@@ -156,6 +149,10 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	}
 
 	return nil
+}
+
+func (s *tradeService) CalIncome(ctx context.Context, uid string, cryptoName string) {
+
 }
 
 func (s *tradeService) SendTradeRst(msg string, level string) error {

@@ -39,20 +39,16 @@ CREATE TABLE IF NOT EXISTS wallets(
 );
 
 
-
 CREATE TABLE IF NOT EXISTS orders(
   `oid` VARCHAR(100) NOT NULL PRIMARY KEY,
   `uid` VARCHAR(100) NOT NULL,
-  `from_wid` VARCHAR(100) NOT NULL,
-  `from_amount` float NOT NULL,
-  `to_wid` VARCHAR(100) NOT NULL,
-  `to_amount` float NOT NULL,
+  `pair` VARCHAR(20) NOT NULL,
+  `action` VARCHAR(10),
+  `amount` FLOAT NOT NULL,
+  `price` FLOAT NOT NULL,
   `timestamp` TIMESTAMP NOT NULL,
   `fee` float NOT NULL,
-  `type` VARCHAR(10),
-
-  FOREIGN KEY (`from_wid`) REFERENCES `wallets` (`wid`),
-  FOREIGN KEY (`to_wid`) REFERENCES `wallets` (`wid`)
+  `strategy` VARCHAR(10)
 );
 
 CREATE TABLE IF NOT EXISTS crons(

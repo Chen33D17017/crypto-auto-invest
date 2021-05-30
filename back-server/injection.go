@@ -46,16 +46,17 @@ func inject(d *dataSources) (*gin.Engine, error) {
 
 	tradeDelay := os.Getenv("DELAY")
 	td, err := strconv.ParseInt(tradeDelay, 0, 64)
-	infoWebhook := os.Getenv("INFO_WEBHOOK")
-	errorWebhook := os.Getenv("ERROR_WEBHOOK")
+	//infoWebhook := os.Getenv("INFO_WEBHOOK")
+	//errorWebhook := os.Getenv("ERROR_WEBHOOK")
+	testWebhook := os.Getenv("TEST_WEBHOOK")
 	mode := os.Getenv("MODE")
 	var tradeService model.TradeService
 	if mode == "dev" {
 		tradeService = services.NewTradeService(&services.TSConifg{
 			TradeRepository:  tradeRepository,
 			WalletRepository: walletRepository,
-			InfoWebhook:      infoWebhook,
-			ErrorWebhook:     errorWebhook,
+			InfoWebhook:      testWebhook,
+			ErrorWebhook:     testWebhook,
 			Delay:            time.Duration(time.Duration(td) * time.Second),
 		})
 	} else {
