@@ -88,37 +88,14 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		cronService.AddCronFunc(ctx, &job)
 	}
 
-	tradeRateApi := os.Getenv("TRADE_RATE_API")
-	maxRate := os.Getenv("MAX_RATE")
-	autoTradeTimePattern := os.Getenv("AUTO_TRADE_TIME")
-	rate, err := strconv.ParseFloat(maxRate, 64)
 	if err != nil {
 		log.Fatalf("Fail to load max rate on auto trade")
 	}
 	autoTradeService := services.NewAutoTradeService(&services.ATSConifg{
-		TradeService:        tradeService,
 		WalletRepository:    walletRepository,
 		UserRepository:      userRepository,
 		AutoTradeRepository: autoTradeRepository,
-		CronJobManager:      cronJobManager,
-		Cron:                cron,
-		TimePattern:         autoTradeTimePattern,
-		TradeRateApi:        tradeRateApi,
-		MaxRate:             rate,
 	})
-
-	settings, err := autoTradeRepository.GetAllAutoTrade()
-	if err != nil {
-		log.Fatalf("Fail to load auto trade setting: %s\n", err.Error())
-	}
-	log.Printf("Load auto buy setting number: %v\n", len(*settings))
-	for _, setting := range *settings {
-		ctx := context.TODO()
-		err = autoTradeService.AddCronFunc(ctx, setting)
-		if err != nil {
-			log.Fatalf("Fail to load auto trade setting: %s\n", err.Error())
-		}
-	}
 
 	// load rsa keys
 	privKeyFile := os.Getenv("PRIV_KEY_FILE")

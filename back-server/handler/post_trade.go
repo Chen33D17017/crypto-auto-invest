@@ -9,7 +9,8 @@ import (
 
 type tradeReq struct {
 	CryptoName string  `json:"crypto_name" binding:"required"`
-	Rate       float64 `json:"rate" binding:"required"`
+	UID        string  `json:"uid" binding:"required"`
+	Amount     float64 `json:"amount" binding:"required"`
 	Action     string  `json:"action" binding:"required"`
 	Strategy   int     `json:"strategy" binding:"required"`
 }
@@ -24,7 +25,9 @@ func (h *Handler) Trade(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	err := h.AutoTradeService.TradeWithRate(ctx, req.CryptoName, req.Action, req.Rate, req.Strategy)
+	user, err := h.UserService.Get(ctx, req.UID)
+
+	_, err = h.TradeService.Trade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())
 		c.JSON(err.Status(), gin.H{

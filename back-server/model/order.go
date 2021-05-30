@@ -9,5 +9,5 @@ type Order struct {
 	Price     float64 `db:"price"`
 	Timestamp string  `db:"timestamp"`
 	Fee       float64 `db:"fee"`
-	Strategy  int     `db:"strategy"`
+	Strategy  int     `db:"strategy_id"`
 }
