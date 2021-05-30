@@ -26,8 +26,6 @@ type tradeService struct {
 	Delay            time.Duration
 	InfoWebhook      string
 	ErrorWebhook     string
-	TradeRateApi     string
-	MaxRate          string
 }
 
 type TSConifg struct {
@@ -36,8 +34,6 @@ type TSConifg struct {
 	Delay            time.Duration
 	InfoWebhook      string
 	ErrorWebhook     string
-	TradeRateApi     string
-	MaxRate          string
 }
 
 func NewTradeService(c *TSConifg) model.TradeService {
@@ -47,8 +43,6 @@ func NewTradeService(c *TSConifg) model.TradeService {
 		Delay:            c.Delay,
 		InfoWebhook:      c.InfoWebhook,
 		ErrorWebhook:     c.ErrorWebhook,
-		TradeRateApi:     c.TradeRateApi,
-		MaxRate:          c.MaxRate,
 	}
 }
 
