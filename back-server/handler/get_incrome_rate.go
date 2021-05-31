@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) GetIncomseRate(c *gin.Context) {
+func (h *Handler) GetIncomeRate(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
 		log.Printf("Unable to extract user from request context for unknow reason: %v\n", c)
@@ -47,7 +47,7 @@ func (h *Handler) GetIncomseRate(c *gin.Context) {
 	}
 	strategyID, _ := strconv.Atoi(strategy)
 
-	incomeRate, err := h.TradeService.CalIncomeRate(ctx, uid, cryptoName, strategyID)
+	income, err := h.TradeService.CalIncomeRate(ctx, uid, cryptoName, strategyID)
 	if err != nil {
 		c.JSON(apperrors.Status(err), gin.H{
 			"error": err,
@@ -56,6 +56,6 @@ func (h *Handler) GetIncomseRate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": incomeRate,
+		"data": income,
 	})
 }

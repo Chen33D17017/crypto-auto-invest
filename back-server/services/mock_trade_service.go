@@ -25,8 +25,9 @@ func (s *mocktTradeService) SaveOrder(ctx context.Context, u *model.User, orderI
 	return nil
 }
 
-func (s *mocktTradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName string, strategyID int) (float64, error) {
-	return 0.0, nil
+func (s *mocktTradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName string, strategyID int) (*model.Income, error) {
+	mock := &model.Income{}
+	return mock, nil
 }
 func (s *mocktTradeService) SendTradeRst(msg string, level string) error {
 	return nil

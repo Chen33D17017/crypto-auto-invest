@@ -154,37 +154,60 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	return nil
 }
 
-func (s *tradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName string, strategyID int) (float64, error) {
+func (s *tradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName string, strategyID int) (*model.Income, error) {
+	rst := &model.Income{}
 	orders, err := s.TradeRepository.GetOrderLogs(ctx, uid, cryptoName, strategyID)
 	if err != nil {
-		return 0.0, err
+		return rst, err
 	}
 
 	cost := 0.0
 	amount := 0.0
+	JPY := 0.0
 	for _, order := range *orders {
 		if order.Action == "buy" {
 			cost += order.Amount*order.Price + order.Fee
 			amount += order.Amount
 		} else {
 			amount -= order.Amount
-			cost -= (order.Amount*order.Price - order.Fee)
+			JPY += (order.Amount*order.Price - order.Fee)
 		}
 		cost = normalizeFloat(cost)
 		amount = normalizeFloat(amount)
+		JPY = normalizeFloat(JPY)
 	}
 	price, err := bitbank.GetPrice(cryptoName)
 	if err != nil {
 		log.Printf("SERVICE: Fail to get crypto price %s err: %s\n", cryptoName, err.Error())
-		return 0.0, apperrors.NewInternal()
+		return rst, apperrors.NewInternal()
 	}
 	lastPrice, err := strconv.ParseFloat(price.Last, 64)
 	if err != nil {
 		log.Printf("SERVICE: Fail to get crypto price %s err: %s\n", cryptoName, err.Error())
-		return 0.0, apperrors.NewInternal()
+		return rst, apperrors.NewInternal()
 	}
-	incomeRate := normalizeFloat((amount * lastPrice) / cost * 100)
-	return incomeRate, nil
+	incomeRate := normalizeFloat((amount*lastPrice + JPY) / cost * 100)
+	rst.CryptoName = cryptoName
+	rst.Strategy = strategyID
+	rst.Amount = amount
+	rst.Cost = cost
+	rst.JPY = JPY
+	rst.IncomeRate = fmt.Sprintf("%v%%", incomeRate)
+	if strategyID != 0 {
+		logs, err := s.WalletRepository.GetChargeLogs(ctx, uid, cryptoName, strategyID)
+		if err != nil {
+			return rst, nil
+		}
+		total := 0.0
+		for _, log := range *logs {
+			if log.CryptoName == "jpy" {
+				total += log.Amount
+			}
+		}
+		rst.Deposit = total
+		rst.DepositIncomeRate = fmt.Sprintf("%v%%", normalizeFloat((amount*lastPrice+JPY)/total*100))
+	}
+	return rst, nil
 }
 
 func (s *tradeService) SendTradeRst(msg string, level string) error {
