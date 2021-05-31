@@ -26,8 +26,6 @@ type tradeService struct {
 	Delay            time.Duration
 	InfoWebhook      string
 	ErrorWebhook     string
-	TradeRateApi     string
-	MaxRate          string
 }
 
 type TSConifg struct {
@@ -36,8 +34,6 @@ type TSConifg struct {
 	Delay            time.Duration
 	InfoWebhook      string
 	ErrorWebhook     string
-	TradeRateApi     string
-	MaxRate          string
 }
 
 func NewTradeService(c *TSConifg) model.TradeService {
@@ -47,14 +43,12 @@ func NewTradeService(c *TSConifg) model.TradeService {
 		Delay:            c.Delay,
 		InfoWebhook:      c.InfoWebhook,
 		ErrorWebhook:     c.ErrorWebhook,
-		TradeRateApi:     c.TradeRateApi,
-		MaxRate:          c.MaxRate,
 	}
 }
 
 // Buy unit JPY
 // Sell unit crypto currency
-func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
+func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategyID int) (bm.Order, error) {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
@@ -75,7 +69,15 @@ func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64,
 	}
 
 	time.AfterFunc(s.Delay, func() {
-		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), cryptoName, strategy)
+		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), cryptoName, strategyID)
+	})
+
+	time.AfterFunc(s.Delay+time.Duration(time.Second*30), func() {
+		incomeRate, err := s.CalIncomeRate(context.TODO(), u.UID, cryptoName, strategyID)
+		if err != nil {
+			s.SendTradeRst(fmt.Sprintf("Fail to calculate %s's income rate on (cryptoName %s, strategy %v)", u.Name, cryptoName, strategyID), "error")
+		}
+		s.SendTradeRst(fmt.Sprintf("%s's income rate on (cryptoName %s, strategy %v): %v", u.Name, cryptoName, strategyID, incomeRate), "info")
 	})
 	return order, nil
 }
@@ -152,7 +154,60 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	return nil
 }
 
-func (s *tradeService) CalIncome(ctx context.Context, uid string, cryptoName string, strategyID int) {
+func (s *tradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName string, strategyID int) (*model.Income, error) {
+	rst := &model.Income{}
+	orders, err := s.TradeRepository.GetOrderLogs(ctx, uid, cryptoName, strategyID)
+	if err != nil {
+		return rst, err
+	}
+
+	cost := 0.0
+	amount := 0.0
+	JPY := 0.0
+	for _, order := range *orders {
+		if order.Action == "buy" {
+			cost += order.Amount*order.Price + order.Fee
+			amount += order.Amount
+		} else {
+			amount -= order.Amount
+			JPY += (order.Amount*order.Price - order.Fee)
+		}
+		cost = normalizeFloat(cost)
+		amount = normalizeFloat(amount)
+		JPY = normalizeFloat(JPY)
+	}
+	price, err := bitbank.GetPrice(cryptoName)
+	if err != nil {
+		log.Printf("SERVICE: Fail to get crypto price %s err: %s\n", cryptoName, err.Error())
+		return rst, apperrors.NewInternal()
+	}
+	lastPrice, err := strconv.ParseFloat(price.Last, 64)
+	if err != nil {
+		log.Printf("SERVICE: Fail to get crypto price %s err: %s\n", cryptoName, err.Error())
+		return rst, apperrors.NewInternal()
+	}
+	incomeRate := normalizeFloat((amount*lastPrice + JPY) / cost * 100)
+	rst.CryptoName = cryptoName
+	rst.Strategy = strategyID
+	rst.Amount = amount
+	rst.Cost = cost
+	rst.JPY = JPY
+	rst.IncomeRate = fmt.Sprintf("%v%%", incomeRate)
+	if strategyID != 0 {
+		logs, err := s.WalletRepository.GetChargeLogs(ctx, uid, cryptoName, strategyID)
+		if err != nil {
+			return rst, nil
+		}
+		total := 0.0
+		for _, log := range *logs {
+			if log.CryptoName == "jpy" {
+				total += log.Amount
+			}
+		}
+		rst.Deposit = total
+		rst.DepositIncomeRate = fmt.Sprintf("%v%%", normalizeFloat((amount*lastPrice+JPY)/total*100))
+	}
+	return rst, nil
 }
 
 func (s *tradeService) SendTradeRst(msg string, level string) error {
