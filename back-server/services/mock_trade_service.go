@@ -14,13 +14,13 @@ func NewMockTradeService() model.TradeService {
 	return &mocktTradeService{}
 }
 
-func (s *mocktTradeService) Trade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
+func (s *mocktTradeService) Trade(ctx context.Context, u *model.User, amount float64, side, assetType, orderType string) (bm.Order, error) {
 	mock := bm.Order{}
-	log.Printf("%s %s %s with %v strategt: %v\n", u.Name, action, cryptoName, amount, strategy)
+	log.Printf("%s %s %s with %v (%s)\n", u.Name, side, assetType, amount, orderType)
 	return mock, nil
 }
 
-func (s *mocktTradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName string, strategy int) error {
+func (s *mocktTradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, assetType, orderType string) error {
 	log.Println(u.Name + "save order")
 	return nil
 }
