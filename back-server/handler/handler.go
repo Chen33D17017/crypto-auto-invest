@@ -29,6 +29,7 @@ type Config struct {
 	AutoTradeService model.AutoTradeService
 	BaseURL          string
 	TimeoutDuration  time.Duration
+	ServiceToken     string
 }
 
 func NewHandler(c *Config) {
@@ -85,8 +86,8 @@ func NewHandler(c *Config) {
 	g_user.POST("/image", h.Image)
 	g_user.DELETE("/image", h.DeleteImage)
 
-	g_crypto.POST("/trade", h.Trade)
-	g_crypto.GET("/auto_trade", h.GetAutoTradeInfo)
+	g_crypto.POST("/trade", middleware.AuthService(c.ServiceToken), h.Trade)
+	g_crypto.GET("/auto_trade", middleware.AuthService(c.ServiceToken), h.GetAutoTradeInfo)
 }
 
 func (h *Handler) Image(c *gin.Context) {
