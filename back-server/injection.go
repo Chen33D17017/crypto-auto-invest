@@ -162,6 +162,8 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		return nil, fmt.Errorf("could not parse HANDLER_TIMEOUT as int: %w", err)
 	}
 
+	serviceToken := os.Getenv("HEADER_SECRET")
+
 	handler.NewHandler(&handler.Config{
 		R:                router,
 		UserService:      userService,
@@ -172,6 +174,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		AutoTradeService: autoTradeService,
 		BaseURL:          baseURL,
 		TimeoutDuration:  time.Duration(time.Duration(ht) * time.Second),
+		ServiceToken:     serviceToken,
 	})
 
 	return router, nil
