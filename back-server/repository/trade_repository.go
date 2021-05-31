@@ -14,6 +14,7 @@ const (
 	queryInsertTradeLog = `INSERT INTO orders (oid, uid, pair, action, amount, price, timestamp, fee, strategy_id) 
 							VALUES (:oid, :uid, :pair, :action, :amount, :price, :timestamp, :fee, :strategy_id)`
 	queryGetTradeLogs = `SELECT * FROM orders WHERE uid=? AND pair=? and strategy_id=?`
+
 )
 
 type tradeRepository struct {
@@ -29,9 +30,8 @@ func NewTradeRepository(db *sqlx.DB) model.TradeRepository {
 func (r *tradeRepository) SaveOrder(ctx context.Context, t *model.Order) error {
 	_, err := r.DB.NamedExecContext(ctx, queryInsertTradeLog, *t)
 	if err != nil {
-		errString := fmt.Sprintf("RESPOSITORY: Fail to Insert Trade Log: %v, err: %s\n", t.OID, err.Error())
-		log.Printf(errString)
-		return fmt.Errorf(errString)
+		log.Printf("RESPOSITORY: Fail to Insert Trade Log: %v, err: %s", t.OID, err.Error())
+		return apperrors.NewInternal()
 	}
 	return nil
 }

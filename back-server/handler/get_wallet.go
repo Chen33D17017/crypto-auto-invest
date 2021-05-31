@@ -5,7 +5,6 @@ import (
 	"crypto-auto-invest/model/apperrors"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,25 +23,7 @@ func (h *Handler) GetWallets(c *gin.Context) {
 	uid := user.(*model.User).UID
 
 	ctx := c.Request.Context()
-	strategy, ok := c.GetQuery("strategy_id")
-
-	if !ok {
-		log.Printf("Unable to extract strategy id")
-		err := apperrors.NewBadRequest("Need to query with strategy id")
-		c.JSON(err.Status(), gin.H{
-			"error": err,
-		})
-		return
-	}
-	strategyID, err := strconv.Atoi(strategy)
-	if err != nil {
-		err := apperrors.NewBadRequest("Wrong format on strategy id")
-		c.JSON(err.Status(), gin.H{
-			"error": err,
-		})
-		return
-	}
-	wallets, err := h.WalletService.GetWallets(ctx, uid, strategyID)
+	wallets, err := h.WalletService.GetWallets(ctx, uid)
 
 	if err != nil {
 		log.Printf("Unable to find user: %v\n%v\n", uid, err)
@@ -75,26 +56,14 @@ func (h *Handler) GetWallet(c *gin.Context) {
 
 	if !ok {
 		log.Printf("Unable to extract currency type")
-		err := apperrors.NewBadRequest("Need to query with currency name")
+		err := apperrors.NewBadRequest("Need to query withcurrency type")
 		c.JSON(err.Status(), gin.H{
 			"error": err,
 		})
 		return
 	}
 
-	strategy, ok := c.GetQuery("strategy_id")
-
-	if !ok {
-		log.Printf("Unable to extract strategy id")
-		err := apperrors.NewBadRequest("Need to query with strategy id")
-		c.JSON(err.Status(), gin.H{
-			"error": err,
-		})
-		return
-	}
-	strategyID, _ := strconv.Atoi(strategy)
-
-	wallets, err := h.WalletService.GetUserWallet(ctx, uid, cryptoName, strategyID)
+	wallets, err := h.WalletService.GetUserWallet(ctx, uid, cryptoName)
 
 	if err != nil {
 		c.JSON(apperrors.Status(err), gin.H{

@@ -46,17 +46,16 @@ func inject(d *dataSources) (*gin.Engine, error) {
 
 	tradeDelay := os.Getenv("DELAY")
 	td, err := strconv.ParseInt(tradeDelay, 0, 64)
-	//infoWebhook := os.Getenv("INFO_WEBHOOK")
-	//errorWebhook := os.Getenv("ERROR_WEBHOOK")
-	testWebhook := os.Getenv("TEST_WEBHOOK")
+	infoWebhook := os.Getenv("INFO_WEBHOOK")
+	errorWebhook := os.Getenv("ERROR_WEBHOOK")
 	mode := os.Getenv("MODE")
 	var tradeService model.TradeService
-	if mode == "dev" {
+	if mode == "prod" {
 		tradeService = services.NewTradeService(&services.TSConifg{
 			TradeRepository:  tradeRepository,
 			WalletRepository: walletRepository,
-			InfoWebhook:      testWebhook,
-			ErrorWebhook:     testWebhook,
+			InfoWebhook:      infoWebhook,
+			ErrorWebhook:     errorWebhook,
 			Delay:            time.Duration(time.Duration(td) * time.Second),
 		})
 	} else {
@@ -88,14 +87,37 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		cronService.AddCronFunc(ctx, &job)
 	}
 
+	tradeRateApi := os.Getenv("TRADE_RATE_API")
+	maxRate := os.Getenv("MAX_RATE")
+	autoTradeTimePattern := os.Getenv("AUTO_TRADE_TIME")
+	rate, err := strconv.ParseFloat(maxRate, 64)
 	if err != nil {
 		log.Fatalf("Fail to load max rate on auto trade")
 	}
 	autoTradeService := services.NewAutoTradeService(&services.ATSConifg{
+		TradeService:        tradeService,
 		WalletRepository:    walletRepository,
 		UserRepository:      userRepository,
 		AutoTradeRepository: autoTradeRepository,
+		CronJobManager:      cronJobManager,
+		Cron:                cron,
+		TimePattern:         autoTradeTimePattern,
+		TradeRateApi:        tradeRateApi,
+		MaxRate:             rate,
 	})
+
+	settings, err := autoTradeRepository.GetAllAutoTrade()
+	if err != nil {
+		log.Fatalf("Fail to load auto trade setting: %s\n", err.Error())
+	}
+	log.Printf("Load auto buy setting number: %v\n", len(*settings))
+	for _, setting := range *settings {
+		ctx := context.TODO()
+		err = autoTradeService.AddCronFunc(ctx, setting)
+		if err != nil {
+			log.Fatalf("Fail to load auto trade setting: %s\n", err.Error())
+		}
+	}
 
 	// load rsa keys
 	privKeyFile := os.Getenv("PRIV_KEY_FILE")
@@ -162,8 +184,6 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		return nil, fmt.Errorf("could not parse HANDLER_TIMEOUT as int: %w", err)
 	}
 
-	serviceToken := os.Getenv("HEADER_SECRET")
-
 	handler.NewHandler(&handler.Config{
 		R:                router,
 		UserService:      userService,
@@ -174,7 +194,6 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		AutoTradeService: autoTradeService,
 		BaseURL:          baseURL,
 		TimeoutDuration:  time.Duration(time.Duration(ht) * time.Second),
-		ServiceToken:     serviceToken,
 	})
 
 	return router, nil

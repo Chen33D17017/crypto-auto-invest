@@ -11,8 +11,8 @@ import (
 )
 
 type saveOrderReq struct {
-	OrderID    int64  `json:"order_id" binding:"required"`
-	CryptoName string `json:"crypto_name" binding:"required"`
+	OrderID int64  `json:"order_id" binding:"required"`
+	CryptoName    string `json:"crypto_name" binding:"required"`
 }
 
 func (h *Handler) SaveOrder(c *gin.Context) {
@@ -37,7 +37,7 @@ func (h *Handler) SaveOrder(c *gin.Context) {
 	u, _ := h.UserService.Get(ctx, user.(*model.User).UID)
 
 	orderID := fmt.Sprintf("%v", req.OrderID)
-	err := h.TradeService.SaveOrder(ctx, u, orderID, req.CryptoName, 0)
+	err := h.TradeService.SaveOrder(ctx, u, orderID, req.CryptoName, "fixed")
 
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())

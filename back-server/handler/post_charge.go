@@ -11,7 +11,6 @@ import (
 
 type changeWalletReq struct {
 	CryptoName string  `json:"crypto_name" binding:"required,lowercase"`
-	StrategyID int     `json:"strategy_id" binding:"required"`
 	Amount     float64 `json:"amount" binding:"required"`
 }
 
@@ -36,7 +35,7 @@ func (h *Handler) Charge(c *gin.Context) {
 	uid := user.(*model.User).UID
 
 	ctx := c.Request.Context()
-	wallet, err := h.WalletService.ChangeMoney(ctx, uid, req.CryptoName, req.Amount, req.StrategyID)
+	wallet, err := h.WalletService.ChangeMoney(ctx, uid, req.CryptoName, req.Amount)
 
 	if err != nil {
 		log.Printf("Fail to change Wallet value on %s to %v, err: %v\n", req.CryptoName, uid, err)

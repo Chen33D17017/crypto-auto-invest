@@ -4,6 +4,7 @@ PWD = $(shell pwd)
 APPPATH = back-server
 ACCTPATH = $(PWD)/$(APPPATH)
 PORT = 5432
+ENV = prod
 
 # Default number of migrations to execute up or down
 N = 1

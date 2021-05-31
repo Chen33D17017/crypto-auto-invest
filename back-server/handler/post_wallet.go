@@ -9,13 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type addAutoTradeReq struct {
+type addWalletReq struct {
 	CryptoName string `json:"crypto_name" binding:"required,lowercase"`
 }
 
-func (h *Handler) AddAutoTrade(c *gin.Context) {
+func (h *Handler) AddWallet(c *gin.Context) {
 
-	var req addAutoTradeReq
+	var req addWalletReq
 
 	if ok := bindData(c, &req); !ok {
 		return
@@ -31,21 +31,20 @@ func (h *Handler) AddAutoTrade(c *gin.Context) {
 		return
 	}
 
-	ctx := c.Request.Context()
 	uid := user.(*model.User).UID
-	err := h.AutoTradeService.AddAutoTrade(ctx, uid, req.CryptoName)
+
+	ctx := c.Request.Context()
+	wallet, err := h.WalletService.AddWallet(ctx, uid, req.CryptoName)
 
 	if err != nil {
-		log.Printf("Fail to Add Auto Trade %s to %v, err: %v\n", req.CryptoName, uid, err)
-		e := err.(*apperrors.Error)
-		c.JSON(e.Status(), gin.H{
-			"error": e,
+		log.Printf("Fail to Add Wallet %s to %v, err: %v\n", req.CryptoName, uid, err)
+		c.JSON(apperrors.Status(err), gin.H{
+			"error": err,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"uid":         uid,
-		"crypto_name": req.CryptoName,
+		"wallets": wallet,
 	})
 }
