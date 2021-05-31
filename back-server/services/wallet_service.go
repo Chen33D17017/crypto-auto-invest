@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"crypto-auto-invest/model"
+	"crypto-auto-invest/model/apperrors"
 )
 
 type walletService struct {
@@ -19,44 +20,49 @@ func NewWalletService(c *WAConfig) model.WalletService {
 	}
 }
 
-func (w *walletService) AddWallet(ctx context.Context, uid string, currencyName string) (*model.Wallet, error) {
+func (w *walletService) AddWallet(ctx context.Context, uid string, cryptoName string, strategyID int) (*model.Wallet, error) {
 	var rst *model.Wallet
-	cid, err := w.WalletRepository.GetCurrencyID(ctx, currencyName)
+	cid, err := w.WalletRepository.GetCurrencyID(ctx, cryptoName)
 	if err != nil {
 		return nil, err
 	}
-	err = w.WalletRepository.AddWallet(ctx, uid, cid)
+	err = w.WalletRepository.AddWallet(ctx, uid, cid, strategyID)
 	if err != nil {
 		return nil, err
 	}
 
-	rst, err = w.WalletRepository.GetWellet(ctx, uid, currencyName)
+	rst, err = w.WalletRepository.GetWellet(ctx, uid, cryptoName, strategyID)
 	if err != nil {
 		return nil, err
 	}
 	return rst, nil
 }
 
-func (w *walletService) GetUserWallet(ctx context.Context, uid string, currencyName string) (*model.Wallet, error) {
+func (w *walletService) GetUserWallet(ctx context.Context, uid string, cryptoName string, strategyID int) (*model.Wallet, error) {
 	var rst *model.Wallet
-	rst, err := w.WalletRepository.GetWellet(ctx, uid, currencyName)
+	rst, err := w.WalletRepository.GetWellet(ctx, uid, cryptoName, strategyID)
 	if err != nil {
 		return nil, err
 	}
 	return rst, nil
 }
 
-func (w *walletService) GetWallets(ctx context.Context, uid string) (*[]model.Wallet, error) {
-	rst, err := w.WalletRepository.GetWallets(ctx, uid)
+func (w *walletService) GetWallets(ctx context.Context, uid string, strategyID int) (*[]model.Wallet, error) {
+	rst, err := w.WalletRepository.GetWallets(ctx, uid, strategyID)
 	if err != nil {
 		return nil, err
 	}
 	return rst, nil
 }
 
-func (w *walletService) ChangeMoney(ctx context.Context, uid string, currencyName string, amount float64) (*model.Wallet, error) {
+func (w *walletService) ChangeMoney(ctx context.Context, uid string, cryptoName string, amount float64, strategyID int) (*model.Wallet, error) {
 	var rst *model.Wallet
-	rst, err := w.WalletRepository.GetWellet(ctx, uid, currencyName)
+	cid, err := w.WalletRepository.GetCurrencyID(ctx, cryptoName)
+	if err != nil {
+		return rst, apperrors.NewBadRequest("Unknow crypto name")
+	}
+	err = w.WalletRepository.AddChargeLog(ctx, uid, cid, strategyID, amount)
+	rst, err = w.WalletRepository.GetWellet(ctx, uid, cryptoName, strategyID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,4 +76,8 @@ func (w *walletService) ChangeMoney(ctx context.Context, uid string, currencyNam
 		return nil, err
 	}
 	return rst, nil
+}
+
+func (w *walletService) GetChargeLogs(ctx context.Context, uid string, cryptoName string, strategyID int) (*[]model.ChargeLog, error) {
+	return w.WalletRepository.GetChargeLogs(ctx, uid, cryptoName, strategyID)
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) DeleteAutoTrade(c *gin.Context) {
+func (h *Handler) GetChargeLogs(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
 		log.Printf("Unable to extract user from request context for unknow reason: %v\n", c)
@@ -20,54 +20,42 @@ func (h *Handler) DeleteAutoTrade(c *gin.Context) {
 		})
 		return
 	}
-
 	uid := user.(*model.User).UID
 
-	ctx := c.Request.Context()
-	currencyName, ok := c.GetQuery("crypto_name")
-
+	cryptoName, ok := c.GetQuery("crypto_name")
 	if !ok {
-		log.Printf("Unable to extract currecncy type")
-		err := apperrors.NewBadRequest("Need to query with currecncy type")
+		err := apperrors.NewBadRequest("Need to query with crypto_name")
 		c.JSON(err.Status(), gin.H{
 			"error": err,
 		})
-		return
 	}
 
 	strategy, ok := c.GetQuery("strategy_id")
-
 	if !ok {
-		log.Printf("Unable to extract strategy id")
 		err := apperrors.NewBadRequest("Need to query with strategy id")
 		c.JSON(err.Status(), gin.H{
 			"error": err,
 		})
 		return
 	}
-	strategyID, _ := strconv.Atoi(strategy)
-
-	if !ok {
-		log.Printf("Unable to extract currecncy type")
-		err := apperrors.NewBadRequest("Need to query with currecncy type")
+	strategyID, err := strconv.Atoi(strategy)
+	if err != nil {
+		err := apperrors.NewBadRequest("Wrong format on strategy id")
 		c.JSON(err.Status(), gin.H{
 			"error": err,
 		})
 		return
 	}
 
-	err := h.AutoTradeService.DeleteAutoTrade(ctx, uid, currencyName, strategyID)
-
+	ctx := c.Request.Context()
+	rst, err := h.WalletService.GetChargeLogs(ctx, uid, cryptoName, strategyID)
 	if err != nil {
-		log.Printf("Unable to Delete cron: %v\n%v\n", uid, err)
 		e := err.(*apperrors.Error)
 		c.JSON(e.Status(), gin.H{
-			"error": e,
+			"error": err,
 		})
-		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
-		"message": "success",
+		"data": rst,
 	})
 }
