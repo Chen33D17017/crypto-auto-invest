@@ -23,16 +23,15 @@ type TokenService interface {
 }
 
 type WalletService interface {
-	AddWallet(ctx context.Context, uid string, cryptoName string, strategyID int) (*Wallet, error)
-	GetUserWallet(ctx context.Context, uid string, cryptoName string, strategyID int) (*Wallet, error)
-	GetWallets(ctx context.Context, uid string, strategyID int) (*[]Wallet, error)
-	ChangeMoney(ctx context.Context, uid string, cryptoName string, amount float64, strategyID int) (*Wallet, error)
-	GetChargeLogs(ctx context.Context, uid string, cryptoName string, strategyID int) (*[]ChargeLog, error)
+	AddWallet(ctx context.Context, uid string, currencyName string) (*Wallet, error)
+	GetUserWallet(ctx context.Context, uid string, currencyName string) (*Wallet, error)
+	GetWallets(ctx context.Context, uid string) (*[]Wallet, error)
+	ChangeMoney(ctx context.Context, uid string, currencyName string, amount float64) (*Wallet, error)
 }
 
 type TradeService interface {
-	Trade(ctx context.Context, u *User, amount float64, action, cryptoName string, strategy int) (bm.Order, error)
-	SaveOrder(ctx context.Context, u *User, orderID string, cryptoName string, strategy int) error
+	Trade(ctx context.Context, u *User, amount float64, side, cryptoName, orderType string) (bm.Order, error)
+	SaveOrder(ctx context.Context, u *User, orderID string, cryptoName, orderType string) error
 	SendTradeRst(msg string, level string) error
 }
 
@@ -47,10 +46,13 @@ type CronService interface {
 }
 
 type AutoTradeService interface {
-	AddAutoTrade(ctx context.Context, uid, cryptoName string, strategyID int) error
-	DeleteAutoTrade(ctx context.Context, uid, cryptoName string, strategyID int) error
+	AddAutoTrade(ctx context.Context, uid, currencyName string) error
+	DeleteAutoTrade(ctx context.Context, uid, currencyName string) error
 	GetAutoTrades(ctx context.Context, uid string) (*[]AutoTrade, error)
-	GetAutoTradesFromStrategy(ctx context.Context, cryptoName string, strategyID int) ([]AutoTradeRes, error)
+	GetTradeRate(reqBody TradeRateReq) (TradeRateRes, error)
+	AutoTrade(uid string, currencyName string) error
+	AddCronFunc(ctx context.Context, setting AutoTrade) error
+	RemoveCronFunc(ctx context.Context, autoTradeID string) error
 }
 
 type UserRepository interface {
@@ -68,14 +70,12 @@ type TokenRepository interface {
 }
 
 type WalletRepository interface {
-	AddWallet(ctx context.Context, uid string, cid int, strategyID int) error
+	AddWallet(ctx context.Context, uid string, cid int) error
 	GetWalletByID(ctx context.Context, wid string) (*Wallet, error)
-	GetWellet(ctx context.Context, uid string, cryptoName string, strategyID int) (*Wallet, error)
-	GetWallets(ctx context.Context, uid string, strategyID int) (*[]Wallet, error)
+	GetWellet(ctx context.Context, uid string, currencyName string) (*Wallet, error)
+	GetWallets(ctx context.Context, uid string) (*[]Wallet, error)
 	UpdateAmount(ctx context.Context, wid string, amount float64) error
-	GetCurrencyID(ctx context.Context, cryptoName string) (int, error)
-	AddChargeLog(ctx context.Context, uid string, cid int, strategyID int, amount float64) error
-	GetChargeLogs(ctx context.Context, uid string, cryptoName string, strategyID int) (*[]ChargeLog, error)
+	GetCurrencyID(ctx context.Context, currencyName string) (int, error)
 }
 
 type TradeRepository interface {
@@ -93,10 +93,11 @@ type CronRepository interface {
 }
 
 type AutoTradeRepository interface {
-	AddAutoTrade(ctx context.Context, uid string, int, strategyID int) error
-	DeleteAutoTrade(ctx context.Context, uid string, int, strategyID int) error
+	AddAutoTrade(ctx context.Context, uid string, type_id int) error
+	DeleteAutoTrade(ctx context.Context, uid string, type_id int) error
 	GetAutoTrades(ctx context.Context, uid string) (*[]AutoTrade, error)
-	GetAutoTradeFromStrategy(ctx context.Context, cryptoName string, strategyID int) (*[]AutoTrade, error)
+	GetAutoTrade(ctx context.Context, uid, currencyName string) (*AutoTrade, error)
+	GetAllAutoTrade() (*[]AutoTrade, error)
 }
 
 type CronJobManager interface {

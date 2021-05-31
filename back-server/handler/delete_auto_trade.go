@@ -5,7 +5,6 @@ import (
 	"crypto-auto-invest/model/apperrors"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,28 +34,7 @@ func (h *Handler) DeleteAutoTrade(c *gin.Context) {
 		return
 	}
 
-	strategy, ok := c.GetQuery("strategy_id")
-
-	if !ok {
-		log.Printf("Unable to extract strategy id")
-		err := apperrors.NewBadRequest("Need to query with strategy id")
-		c.JSON(err.Status(), gin.H{
-			"error": err,
-		})
-		return
-	}
-	strategyID, _ := strconv.Atoi(strategy)
-
-	if !ok {
-		log.Printf("Unable to extract currecncy type")
-		err := apperrors.NewBadRequest("Need to query with currecncy type")
-		c.JSON(err.Status(), gin.H{
-			"error": err,
-		})
-		return
-	}
-
-	err := h.AutoTradeService.DeleteAutoTrade(ctx, uid, currencyName, strategyID)
+	err := h.AutoTradeService.DeleteAutoTrade(ctx, uid, currencyName)
 
 	if err != nil {
 		log.Printf("Unable to Delete cron: %v\n%v\n", uid, err)

@@ -29,7 +29,6 @@ type Config struct {
 	AutoTradeService model.AutoTradeService
 	BaseURL          string
 	TimeoutDuration  time.Duration
-	ServiceToken     string
 }
 
 func NewHandler(c *Config) {
@@ -54,8 +53,8 @@ func NewHandler(c *Config) {
 		g_user.PATCH("/details", middleware.AuthUser(h.TokenService), h.PatchUser)
 		g_user.GET("/wallet", middleware.AuthUser(h.TokenService), h.GetWallet)
 		g_user.GET("/wallets", middleware.AuthUser(h.TokenService), h.GetWallets)
+		g_user.POST("/add_wallet", middleware.AuthUser(h.TokenService), h.AddWallet)
 		g_user.POST("/charge", middleware.AuthUser(h.TokenService), h.Charge)
-		g_user.GET("/charge", middleware.AuthUser(h.TokenService), h.GetChargeLogs)
 		g_user.POST("/cron", middleware.AuthUser(h.TokenService), h.AddCron)
 		g_user.GET("/cron", middleware.AuthUser(h.TokenService), h.GetCron)
 		g_user.GET("/crons", middleware.AuthUser(h.TokenService), h.GetCrons)
@@ -66,6 +65,7 @@ func NewHandler(c *Config) {
 		g_price.GET("/trade", middleware.AuthUser(h.TokenService), h.GetTrade)
 		g_price.GET("/historys", middleware.AuthUser(h.TokenService), h.GetHistory)
 
+		g_crypto.POST("/trade", middleware.AuthUser(h.TokenService), h.Trade)
 		g_crypto.POST("/order", middleware.AuthUser(h.TokenService), h.SaveOrder)
 		g_crypto.POST("/auto_trade", middleware.AuthUser(h.TokenService), h.AddAutoTrade)
 		g_crypto.DELETE("/auto_trade", middleware.AuthUser(h.TokenService), h.DeleteAutoTrade)
@@ -77,6 +77,7 @@ func NewHandler(c *Config) {
 		g_user.PATCH("/details", h.PatchUser)
 		g_user.GET("/wallet", h.GetWallets)
 		g_user.GET("/wallets", h.GetWallets)
+		g_user.POST("/add_wallet", h.AddWallet)
 		g_user.POST("/charge", h.Charge)
 	}
 	g_user.POST("/signup", h.Signup)
@@ -85,8 +86,7 @@ func NewHandler(c *Config) {
 	g_user.POST("/image", h.Image)
 	g_user.DELETE("/image", h.DeleteImage)
 
-	g_crypto.POST("/trade", middleware.AuthService(c.ServiceToken), h.Trade)
-	g_crypto.GET("/auto_trade", middleware.AuthService(c.ServiceToken), h.GetAutoTradeInfo)
+	g_price.GET("/price", h.GetPrice)
 }
 
 func (h *Handler) Image(c *gin.Context) {

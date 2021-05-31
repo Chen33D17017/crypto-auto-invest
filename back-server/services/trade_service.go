@@ -54,14 +54,14 @@ func NewTradeService(c *TSConifg) model.TradeService {
 
 // Buy unit JPY
 // Sell unit crypto currency
-func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
+func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, side, cryptoName, orderType string) (bm.Order, error) {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
 	}
 	var order bm.Order
 	var err error
-	switch action {
+	switch side {
 	case "buy":
 		order, err = bitbank.BuyWithJPY(secret, cryptoName, int64(amount))
 	case "sell":
@@ -70,17 +70,17 @@ func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64,
 		return order, apperrors.NewInternal()
 	}
 	if err != nil {
-		s.SendTradeRst(fmt.Sprintf("SERVICE: Trade err with user: %s cryptoName: %s, Amount: %v, Side: %s\n", u.UID, cryptoName, amount, action), "error")
+		s.SendTradeRst(fmt.Sprintf("SERVICE: Trade err with user: %s cryptoName: %s, Amount: %v, Side: %s\n", u.UID, cryptoName, amount, side), "error")
 		return order, apperrors.NewInternal()
 	}
 
 	time.AfterFunc(s.Delay, func() {
-		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), cryptoName, strategy)
+		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), cryptoName, orderType)
 	})
 	return order, nil
 }
 
-func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName string, strategy_id int) error {
+func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName, orderType string) error {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
@@ -91,11 +91,8 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		return apperrors.NewInternal()
 	}
 	var target model.Order
-	target.OID = fmt.Sprintf("%v", o.OrderId)
 	target.UID = u.UID
-	target.Piar = o.Pair
-	target.Action = o.Side
-
+	target.OID = fmt.Sprintf("%v", o.OrderId)
 	amount, err := strconv.ParseFloat(o.StartAmount, 64)
 	if err != nil {
 		log.Printf("Fail to convert Amount")
@@ -103,22 +100,39 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		return apperrors.NewBadRequest("Wrong struct on order")
 	}
 	amount = normalizeFloat(amount)
-	target.Amount = amount
-
 	avgPrice, err := strconv.ParseFloat(o.AveragePrice, 64)
+
 	if err != nil {
 		log.Printf("Fail to convert AvgPrice")
 		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
 		return apperrors.NewBadRequest("Wrong struct on order")
 	}
-	target.Price = avgPrice
-	target.Timestamp = time.Unix(o.OrderedAt/1000, 0).Format("2006-01-02 15:04:05")
 
 	currencies := strings.Split(o.Pair, "_")
-
+	JPYWallet, err1 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[0])
+	currencyWallet, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1])
+	if err1 != nil || err2 != nil {
+		log.Printf("Wrong cuncerrency with user %v", u.UID)
+		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
+		return apperrors.NewInternal()
+	}
 	JPY := normalizeFloat(amount * avgPrice)
 	target.Fee = normalizeFloat(amount * avgPrice * 0.0012)
-	target.Strategy = strategy_id
+	switch o.Side {
+	case "buy":
+		target.FromAmount = JPY
+		target.ToAmount = amount
+		target.FromWallet = JPYWallet.WID
+		target.ToWallet = currencyWallet.WID
+	case "sell":
+		target.FromAmount = amount
+		target.ToAmount = JPY
+		target.FromWallet = currencyWallet.WID
+		target.ToWallet = JPYWallet.WID
+	}
+
+	target.Timestamp = time.Unix(o.OrderedAt/1000, 0).Format("2006-01-02 15:04:05")
+	target.Type = orderType
 
 	err = s.TradeRepository.SaveOrder(ctx, &target)
 	if err != nil {
@@ -131,14 +145,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		u.Name, o.Side, o.StartAmount, o.Pair, o.AveragePrice, JPY, time.Unix(o.OrderedAt/1000, 0).In(loc).Format(time.RFC822)), "info")
 
 	// Money movement between wallets when orderType is auto
-	if strategy_id != 0 {
-		JPYWallet, err1 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[0], strategy_id)
-		currencyWallet, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1], strategy_id)
-		if err1 != nil || err2 != nil {
-			log.Printf("Wrong cuncerrency with user %v", u.UID)
-			s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
-			return apperrors.NewInternal()
-		}
+	if orderType == "auto" {
 		switch o.Side {
 		case "buy":
 			s.WalletRepository.UpdateAmount(ctx, JPYWallet.WID, -(JPY + target.Fee))
@@ -150,9 +157,6 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	}
 
 	return nil
-}
-
-func (s *tradeService) CalIncome(ctx context.Context, uid string, cryptoName string, strategyID int) {
 }
 
 func (s *tradeService) SendTradeRst(msg string, level string) error {
