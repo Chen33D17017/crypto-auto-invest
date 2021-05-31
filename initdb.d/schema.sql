@@ -30,29 +30,26 @@ INSERT INTO `crypto_name`(`name`) VALUES("bat");
 CREATE TABLE IF NOT EXISTS wallets(
   `wid` VARCHAR(100) DEFAULT (uuid()) PRIMARY KEY,
   `uid` VARCHAR(100) NOT NULL,
+  `strategy_id` INT NOT NULL,
   `crypto_id` INT NOT NULL,
   `amount` FLOAT NOT NULL,
 
   FOREIGN KEY (`uid`) REFERENCES `users` (`uid`),
   FOREIGN KEY (`crypto_id`) REFERENCES `crypto_name`(`id`),
-  UNIQUE (`uid`, `crypto_id`)
+  UNIQUE (`uid`, `crypto_id`, `strategy_id`)
 );
-
 
 
 CREATE TABLE IF NOT EXISTS orders(
   `oid` VARCHAR(100) NOT NULL PRIMARY KEY,
   `uid` VARCHAR(100) NOT NULL,
-  `from_wid` VARCHAR(100) NOT NULL,
-  `from_amount` float NOT NULL,
-  `to_wid` VARCHAR(100) NOT NULL,
-  `to_amount` float NOT NULL,
+  `pair` VARCHAR(20) NOT NULL,
+  `action` VARCHAR(10),
+  `amount` FLOAT NOT NULL,
+  `price` FLOAT NOT NULL,
   `timestamp` TIMESTAMP NOT NULL,
   `fee` float NOT NULL,
-  `type` VARCHAR(10),
-
-  FOREIGN KEY (`from_wid`) REFERENCES `wallets` (`wid`),
-  FOREIGN KEY (`to_wid`) REFERENCES `wallets` (`wid`)
+  `strategy_id` INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS crons(
@@ -64,57 +61,87 @@ CREATE TABLE IF NOT EXISTS crons(
 
   FOREIGN KEY (`uid`) REFERENCES `users` (`uid`),
   FOREIGN KEY (`crypto_id`) REFERENCES `crypto_name`(`id`),
-  UNIQUE (`uid`, `crypto_id`, `time_pattern`)
+  UNIQUE (`uid`, `crypto_id`)
 );
 
 CREATE TABLE IF NOT EXISTS auto_trades(
   `id` VARCHAR(100) DEFAULT (uuid()) PRIMARY KEY,
   `uid` VARCHAR(100) NOT NULL,
+  `strategy_id` INT NOT NULL,
   `crypto_id` INT NOT NULL,
 
   FOREIGN KEY (`crypto_id`) REFERENCES `crypto_name`(`id`),
-  UNIQUE (`uid`, `crypto_id`)
+  FOREIGN KEY (`uid`) REFERENCES `users` (`uid`),
+  UNIQUE (`uid`, `crypto_id`, `strategy_id`)
 );
+
+CREATE TABLE IF NOT EXISTS charge_log(
+  `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `uid` VARCHAR(100) NOT NULL,
+  `crypto_id` INT NOT NULL,
+  `strategy_id` INT NOT NULL,
+  `amount` FLOAT NOT NULL,
+
+  FOREIGN KEY (`uid`) REFERENCES `users` (`uid`),
+  FOREIGN KEY (`crypto_id`) REFERENCES `crypto_name`(`id`),
+);
+
 
 -- view for wallets
 CREATE VIEW `wallets_view` AS
 SELECT
-    w.wid as `wid`,
-    w.uid as `uid`,
-    ct.name as `crypto_name`,
-    w.amount as `amount`
+  w.wid as `wid`,
+  w.uid as `uid`,
+  w.strategy_id as `strategy_id`,
+  ct.name as `crypto_name`,
+  w.amount as `amount`
 FROM
-    wallets w
+  wallets w
 INNER JOIN
-    crypto_name ct
+  crypto_name ct
 ON
-    w.crypto_id=ct.id;
+  w.crypto_id=ct.id;
 
 
 -- view for corns
 CREATE VIEW `crons_view` AS
 SELECT
-    c.id as id,
-    c.uid as `uid`,
-    ct.name as `crypto_name`,
-    c.amount as amount,
-    c.time_pattern as time_pattern
+  c.id as id,
+  c.uid as `uid`,
+  ct.name as `crypto_name`,
+  c.amount as amount,
+  c.time_pattern as time_pattern
 FROM
-    crons c
+  crons c
 INNER JOIN
-    crypto_name ct
+  crypto_name ct
 ON
-    c.crypto_id=ct.id;
+  c.crypto_id=ct.id;
 
 -- view of auto_trades
 CREATE VIEW `auto_trades_view` AS
 SELECT
-    `at`.id as id,
-    `at`.`uid` as `uid`,
-    ct.name as `crypto_name`
+  `at`.id as id,
+  `at`.`uid` as `uid`,
+  `at`.strategy_id as `strategy_id`,
+  ct.name as `crypto_name`
 FROM
-    auto_trades as `at`
+  auto_trades as `at`
 INNER JOIN
-    crypto_name ct
+  crypto_name ct
 ON
-    `at`.crypto_id=ct.id;
+  `at`.crypto_id=ct.id;
+
+CREATE VIEW `charge_log_view` AS
+SELECT
+  `cl`.id as id,
+  `cl`.`uid` as `uid`,
+  `cl`.strategy_id as `strategy_id`,
+  ct.name as `crypto_name`,
+  `cl`.amount as `amount`
+FROM
+  charge_log as `cl`
+INNER JOIN
+  crypto_name ct
+ON
+  `cl`.crypto_id=ct.id;

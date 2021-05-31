@@ -11,19 +11,19 @@ services:
   #    - "8080:8080"
   #  volumes: 
   #    - /var/run/docker.sock:/var/run/docker.sock
-  # service-db:
-  #   image: "mysql:8"
-  #   container_name: service-db
-  #   ports:
-  #     - 3306:3306
-  #   volumes:
-  #   - ./initdb.d:/docker-entrypoint-initdb.d
-  #   command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
-  #   environment:
-  #     - MYSQL_DATABASE=crypto-db
-  #     - MYSQL_ROOT_PASSWORD=root
-  #     - MYSQL_USER=user
-  #     - MYSQL_PASSWORD=password
+  service-db:
+    image: "mysql:8"
+    container_name: service-db
+    ports:
+      - 3306:3306
+    volumes:
+    - ./initdb.d:/docker-entrypoint-initdb.d
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    environment:
+      - MYSQL_DATABASE=crypto-db
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
   redis-account:
     image: "redis:alpine"
     ports:
@@ -44,7 +44,7 @@ services:
       - ./back-server:/go/src/app
     depends_on:
       - redis-account
-      # - service-db
+      - service-db
     command: reflex -r "\.go$$" -s -- sh -c "go run ./"
 volumes:
   redisdata:
