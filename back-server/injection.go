@@ -51,7 +51,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	testWebhook := os.Getenv("TEST_WEBHOOK")
 	mode := os.Getenv("MODE")
 	var tradeService model.TradeService
-	if mode == "prod" {
+	if mode == "dev" {
 		tradeService = services.NewTradeService(&services.TSConifg{
 			TradeRepository:  tradeRepository,
 			WalletRepository: walletRepository,
