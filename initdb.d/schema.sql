@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS charge_log(
   `amount` FLOAT NOT NULL,
 
   FOREIGN KEY (`uid`) REFERENCES `users` (`uid`),
-  FOREIGN KEY (`crypto_id`) REFERENCES `crypto_name`(`id`),
+  FOREIGN KEY (`crypto_id`) REFERENCES `crypto_name`(`id`)
 );
 
 
