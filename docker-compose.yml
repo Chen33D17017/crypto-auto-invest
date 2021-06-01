@@ -35,7 +35,7 @@ services:
       context: ./back-server
       target: builder
     image: back-server
-    env_file: ./back-server/.env.dev
+    env_file: ./back-server/.env.prod
     ports:
       - "8080:8080"
     environment: 
