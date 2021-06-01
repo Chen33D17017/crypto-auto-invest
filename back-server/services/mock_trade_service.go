@@ -16,7 +16,7 @@ func NewMockTradeService() model.TradeService {
 
 func (s *mocktTradeService) Trade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
 	mock := bm.Order{}
-	log.Printf("%s %s %s with %v strategt: %v\n", u.Name, action, cryptoName, amount, strategy)
+	log.Printf("%s %s %s with %v strategy: %v\n", u.Name, action, cryptoName, amount, strategy)
 	return mock, nil
 }
 

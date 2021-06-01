@@ -71,5 +71,7 @@ func AuthService(secret string) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		c.Next()
 	}
 }

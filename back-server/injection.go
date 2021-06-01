@@ -83,6 +83,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 
 	log.Printf("Setting %v cron jobs for system\n", len(*jobs))
 	for _, job := range *jobs {
+		job := job
 		ctx := context.TODO()
 		cronService.AddCronFunc(ctx, &job)
 	}

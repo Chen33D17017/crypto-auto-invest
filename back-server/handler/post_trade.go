@@ -8,11 +8,11 @@ import (
 )
 
 type tradeReq struct {
-	CryptoName string  `json:"crypto_name" binding:"required"`
 	UID        string  `json:"uid" binding:"required"`
 	Amount     float64 `json:"amount" binding:"required"`
 	Action     string  `json:"action" binding:"required"`
-	Strategy   int     `json:"strategy" binding:"required"`
+	CryptoName string  `json:"crypto_name" binding:"required"`
+	Strategy   int     `json:"strategy"`
 }
 
 func (h *Handler) Trade(c *gin.Context) {
@@ -27,7 +27,7 @@ func (h *Handler) Trade(c *gin.Context) {
 
 	user, err := h.UserService.Get(ctx, req.UID)
 
-	_, err = h.TradeService.Trade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+	_, err = h.TradeService.Trade(ctx, user, req.Amount, req.Action, req.CryptoName, 0)
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())
 		c.JSON(err.Status(), gin.H{
