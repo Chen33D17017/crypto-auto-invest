@@ -22,13 +22,13 @@ func NewMockTradeService(webhook string) model.TradeService {
 
 func (s *mocktTradeService) MarketTrade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
 	mock := bm.Order{}
-	s.SendTradeRst(fmt.Sprintf("Market: %s %s %s with %v strategt: %v\n", u.Name, action, cryptoName, amount, strategy), "info")
+	s.SendTradeRst(fmt.Sprintf("Market: %s %s %s with %v strategy: %v\n", u.Name, action, cryptoName, amount, strategy), "info")
 	return mock, nil
 }
 
 func (s *mocktTradeService) LimitTrade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
 	mock := bm.Order{}
-	s.SendTradeRst(fmt.Sprintf("Limit: %s %s %s with %v strategt: %v\n", u.Name, action, cryptoName, amount, strategy), "info")
+	s.SendTradeRst(fmt.Sprintf("Limit: %s %s %s with %v strategy: %v\n", u.Name, action, cryptoName, amount, strategy), "info")
 	return mock, nil
 }
 

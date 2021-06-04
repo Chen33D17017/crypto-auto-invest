@@ -93,9 +93,9 @@ func NewHandler(c *Config) {
 	g_admin.POST("/trade", middleware.AuthService(c.ServiceToken), h.Trade)
 	g_mock.POST("/trade", middleware.AuthService(c.ServiceToken), h.MockTrade)
 	g_admin.GET("/auto_trade", middleware.AuthService(c.ServiceToken), h.GetAutoTradeInfo)
-	g_admin.GET("/all_auto_trade", middleware.AuthService(c.ServiceToken), h.GetAllAutoTrades)
+	g_admin.GET("/all_auto_trades", middleware.AuthService(c.ServiceToken), h.GetAllAutoTrades)
 	g_admin.POST("/order", middleware.AuthService(c.ServiceToken), h.SaveOrder)
-	g_mock.POST("/order", middleware.AuthService(c.ServiceToken), h.SaveOrder)
+	g_mock.POST("/order", middleware.AuthService(c.ServiceToken), h.MockSaveOrder)
 }
 
 func (h *Handler) Image(c *gin.Context) {

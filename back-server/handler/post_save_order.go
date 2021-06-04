@@ -9,7 +9,7 @@ import (
 )
 
 type saveOrderReq struct {
-	UID        string `json:"uid" binding:"uid"`
+	UID        string `json:"uid" binding:"required"`
 	OrderID    int64  `json:"order_id" binding:"required"`
 	CryptoName string `json:"crypto_name" binding:"required"`
 }

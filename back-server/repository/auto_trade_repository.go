@@ -76,7 +76,7 @@ func (r *autoTradeRepository) GetAutoTradeFromStrategy(ctx context.Context, cryp
 
 func (r *autoTradeRepository) GetAllAutoTrades(ctx context.Context) (*[]model.AutoTrade, error) {
 	rst := &[]model.AutoTrade{}
-	err := r.DB.SelectContext(ctx, rst, queryGetAutoTradeUser)
+	err := r.DB.SelectContext(ctx, rst, queryGetAllAutoTrade)
 	if err != nil {
 		return rst, apperrors.NewNotFound("resource", "autoTrade")
 	}

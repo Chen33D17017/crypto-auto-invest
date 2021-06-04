@@ -12,7 +12,7 @@ type tradeReq struct {
 	UID        string  `json:"uid" binding:"required"`
 	Amount     float64 `json:"amount" binding:"required"`
 	Action     string  `json:"action" binding:"required"`
-	Strategy   int     `json:"strategy" binding:"required"`
+	Strategy   int     `json:"strategy"`
 	Type       string  `json:"type" binding:"required"`
 }
 
