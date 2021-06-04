@@ -31,7 +31,6 @@ type Config struct {
 	BaseURL          string
 	TimeoutDuration  time.Duration
 	ServiceToken     string
-	MockWebhook      string
 	MockTradeService model.TradeService
 }
 
@@ -92,10 +91,11 @@ func NewHandler(c *Config) {
 	g_user.DELETE("/image", h.DeleteImage)
 
 	g_admin.POST("/trade", middleware.AuthService(c.ServiceToken), h.Trade)
-	g_mock.POST("/trade", middleware.AuthService(c.ServiceToken), h.Trade)
+	g_mock.POST("/trade", middleware.AuthService(c.ServiceToken), h.MockTrade)
 	g_admin.GET("/auto_trade", middleware.AuthService(c.ServiceToken), h.GetAutoTradeInfo)
 	g_admin.GET("/all_auto_trade", middleware.AuthService(c.ServiceToken), h.GetAllAutoTrades)
 	g_admin.POST("/order", middleware.AuthService(c.ServiceToken), h.SaveOrder)
+	g_mock.POST("/order", middleware.AuthService(c.ServiceToken), h.SaveOrder)
 }
 
 func (h *Handler) Image(c *gin.Context) {

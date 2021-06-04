@@ -46,3 +46,34 @@ func (h *Handler) Trade(c *gin.Context) {
 		"data": "success",
 	})
 }
+
+func (h *Handler) MockTrade(c *gin.Context) {
+	var req tradeReq
+	if ok := bindData(c, &req); !ok {
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	user, err := h.UserService.Get(ctx, req.UID)
+
+	switch req.Type {
+	case "market":
+		_, err = h.MockTradeService.MarketTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+
+	case "limit":
+		_, err = h.MockTradeService.LimitTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+	}
+
+	if err != nil {
+		err := apperrors.NewBadRequest(err.Error())
+		c.JSON(err.Status(), gin.H{
+			"error": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": "success",
+	})
+}
