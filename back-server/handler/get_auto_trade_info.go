@@ -2,6 +2,7 @@ package handler
 
 import (
 	"crypto-auto-invest/model/apperrors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -38,6 +39,7 @@ func (h *Handler) GetAutoTradeInfo(c *gin.Context) {
 	ctx := c.Request.Context()
 	rst, err := h.AutoTradeService.GetAutoTradesFromStrategy(ctx, cryptoName, strategyID)
 	if err != nil {
+		log.Println(err.Error())
 		e := err.(*apperrors.Error)
 		c.JSON(e.Status(), gin.H{
 			"error": err,

@@ -104,3 +104,7 @@ func (s *autoTradeService) checkAndAddWallet(ctx context.Context, uid string, cr
 	}
 	return nil
 }
+
+func (s *autoTradeService) GetAllAutoTrades(ctx context.Context) (*[]model.AutoTrade, error) {
+	return s.AutoTradeRepository.GetAllAutoTrades(ctx)
+}

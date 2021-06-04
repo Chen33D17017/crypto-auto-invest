@@ -97,15 +97,16 @@ func CheckAssets(s model.Secret) ([]model.Asset, error) {
 	return response.Data.Assets, nil
 }
 
-func MakeTrade(s model.Secret, cryptoName string, buy_sell string, amount float64) (model.Order, error) {
+func MakeTrade(s model.Secret, cryptoName string, buy_sell string, amount float64, tradeType string, postOnly bool) (model.Order, error) {
 	url := fmt.Sprintf("/v1/user/spot/order")
 	var response model.OrderRst
 
 	order := model.OrderRequest{
-		Pair:   fmt.Sprintf("%s_jpy", cryptoName),
-		Amount: fmt.Sprintf("%.4f", amount),
-		Side:   buy_sell,
-		Type:   "market",
+		Pair:     fmt.Sprintf("%s_jpy", cryptoName),
+		Amount:   fmt.Sprintf("%.4f", amount),
+		Side:     buy_sell,
+		Type:     tradeType,
+		PostOnly: postOnly,
 	}
 
 	reqBody, _ := json.Marshal(order)
@@ -125,11 +126,11 @@ func BuyWithJPY(s model.Secret, cryptoName string, JPY int64) (model.Order, erro
 	cryptPrice, _ := strconv.Atoi(cryptmsg.Buy)
 	amount := float64(JPY) / float64(cryptPrice)
 
-	return MakeTrade(s, cryptoName, "buy", amount)
+	return MakeTrade(s, cryptoName, "buy", amount, "market", false)
 }
 
 func SellToJPY(s model.Secret, cryptoName string, amount float64) (model.Order, error) {
-	return MakeTrade(s, cryptoName, "sell", amount)
+	return MakeTrade(s, cryptoName, "sell", amount, "market", false)
 }
 
 func GetTradeHistory(s model.Secret, cryptoName string) ([]model.Trade, error) {

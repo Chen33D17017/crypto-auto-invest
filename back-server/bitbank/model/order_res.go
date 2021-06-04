@@ -18,6 +18,7 @@ type Order struct {
 	RemainingAmount string `json:"remaining_amount"`
 	ExecutedAmount  string `json:"executed_amount"`
 	AveragePrice    string `json:"average_price"`
+	PostOnly        bool   `json:"post_only"`
 	OrderedAt       int64  `json:"ordered_at"`
 	Status          string `json:"status"`
 }

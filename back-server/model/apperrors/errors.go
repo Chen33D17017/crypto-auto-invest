@@ -25,8 +25,9 @@ const (
 // which is helpful in returning a consistent
 // error type/message from API endpoints
 type Error struct {
-	Type    Type   `json:"type"`
-	Message string `json:"message"`
+	Type     Type   `json:"type"`
+	Message  string `json:"message"`
+	Internal string `json:"-"`
 }
 
 // Error satisfies standard error interface
@@ -106,6 +107,14 @@ func NewInternal() *Error {
 	return &Error{
 		Type:    Internal,
 		Message: fmt.Sprintf("Internal server error."),
+	}
+}
+
+func NewInternalWithReason(reason string) *Error {
+	return &Error{
+		Type:     Internal,
+		Message:  fmt.Sprintf("Internal Server Error"),
+		Internal: reason,
 	}
 }
 

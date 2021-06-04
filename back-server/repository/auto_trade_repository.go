@@ -14,6 +14,7 @@ const (
 	queryDeleteAutoTrade  = "DELETE FROM auto_trades WHERE uid=? and crypto_id=? and strategy_id=?;"
 	queryGetAutoTrades    = "SELECT * FROM auto_trades_view WHERE uid=?"
 	queryGetAutoTradeUser = "SELECT * FROM auto_trades_view WHERE crypto_name=? and strategy_id=?"
+	queryGetAllAutoTrade  = "SELECT * FROM auto_trades_view"
 )
 
 type autoTradeRepository struct {
@@ -69,6 +70,15 @@ func (r *autoTradeRepository) GetAutoTradeFromStrategy(ctx context.Context, cryp
 	err := r.DB.SelectContext(ctx, rst, queryGetAutoTradeUser, cryptoName, strategyID)
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to get auto trade setting from (cryptoID: %v, strategyID: %v) err: %s", cryptoName, strategyID, err.Error())
+	}
+	return rst, nil
+}
+
+func (r *autoTradeRepository) GetAllAutoTrades(ctx context.Context) (*[]model.AutoTrade, error) {
+	rst := &[]model.AutoTrade{}
+	err := r.DB.SelectContext(ctx, rst, queryGetAllAutoTrade)
+	if err != nil {
+		return rst, apperrors.NewNotFound("resource", "autoTrade")
 	}
 	return rst, nil
 }

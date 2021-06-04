@@ -13,12 +13,11 @@ type tradeReq struct {
 	Action     string  `json:"action" binding:"required"`
 	CryptoName string  `json:"crypto_name" binding:"required"`
 	Strategy   int     `json:"strategy"`
+  Type       string  `json:"type" binding:"required"`
 }
 
 func (h *Handler) Trade(c *gin.Context) {
-
 	var req tradeReq
-
 	if ok := bindData(c, &req); !ok {
 		return
 	}
@@ -27,7 +26,44 @@ func (h *Handler) Trade(c *gin.Context) {
 
 	user, err := h.UserService.Get(ctx, req.UID)
 
-	_, err = h.TradeService.Trade(ctx, user, req.Amount, req.Action, req.CryptoName, 0)
+	switch req.Type {
+	case "market":
+		_, err = h.TradeService.MarketTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+
+	case "limit":
+		_, err = h.TradeService.LimitTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+	}
+
+	if err != nil {
+		err := apperrors.NewBadRequest(err.Error())
+		c.JSON(err.Status(), gin.H{
+			"error": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": "success",
+	})
+}
+
+func (h *Handler) MockTrade(c *gin.Context) {
+	var req tradeReq
+	if ok := bindData(c, &req); !ok {
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	user, err := h.UserService.Get(ctx, req.UID)
+
+	switch req.Type {
+	case "market":
+		_, err = h.MockTradeService.MarketTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+
+	case "limit":
+		_, err = h.MockTradeService.LimitTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+	}
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())
 		c.JSON(err.Status(), gin.H{

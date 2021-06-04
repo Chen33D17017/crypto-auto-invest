@@ -31,7 +31,8 @@ type WalletService interface {
 }
 
 type TradeService interface {
-	Trade(ctx context.Context, u *User, amount float64, action, cryptoName string, strategy int) (bm.Order, error)
+	MarketTrade(ctx context.Context, u *User, amount float64, action, cryptoName string, strategy int) (bm.Order, error)
+	LimitTrade(ctx context.Context, u *User, amount float64, action, cryptoName string, strategyID int) (bm.Order, error)
 	SaveOrder(ctx context.Context, u *User, orderID string, cryptoName string, strategy int) error
 	CalIncomeRate(ctx context.Context, uid string, cryptoName string, strategyID int) (*Income, error)
 	SendTradeRst(msg string, level string) error
@@ -52,6 +53,7 @@ type AutoTradeService interface {
 	DeleteAutoTrade(ctx context.Context, uid, cryptoName string, strategyID int) error
 	GetAutoTrades(ctx context.Context, uid string) (*[]AutoTrade, error)
 	GetAutoTradesFromStrategy(ctx context.Context, cryptoName string, strategyID int) ([]AutoTradeRes, error)
+	GetAllAutoTrades(ctx context.Context) (*[]AutoTrade, error)
 }
 
 type UserRepository interface {
@@ -99,6 +101,7 @@ type AutoTradeRepository interface {
 	DeleteAutoTrade(ctx context.Context, uid string, int, strategyID int) error
 	GetAutoTrades(ctx context.Context, uid string) (*[]AutoTrade, error)
 	GetAutoTradeFromStrategy(ctx context.Context, cryptoName string, strategyID int) (*[]AutoTrade, error)
+	GetAllAutoTrades(ctx context.Context) (*[]AutoTrade, error)
 }
 
 type CronJobManager interface {
