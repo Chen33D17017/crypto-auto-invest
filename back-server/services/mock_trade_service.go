@@ -26,9 +26,9 @@ func (s *mocktTradeService) MarketTrade(ctx context.Context, u *model.User, amou
 	return mock, nil
 }
 
-func (s *mocktTradeService) LimitTrade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
+func (s *mocktTradeService) LimitTrade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, price float64) (bm.Order, error) {
 	mock := bm.Order{}
-	s.SendTradeRst(fmt.Sprintf("Limit: %s %s %s with %v strategy: %v\n", u.Name, action, cryptoName, amount, strategy), "info")
+	s.SendTradeRst(fmt.Sprintf("Limit: %s %s %s with %v at %v\n", u.Name, action, cryptoName, amount, price), "info")
 	return mock, nil
 }
 
