@@ -46,9 +46,8 @@ func inject(d *dataSources) (*gin.Engine, error) {
 
 	tradeDelay := os.Getenv("DELAY")
 	td, err := strconv.ParseInt(tradeDelay, 0, 64)
-	//infoWebhook := os.Getenv("INFO_WEBHOOK")
-	//errorWebhook := os.Getenv("ERROR_WEBHOOK")
-	testWebhook := os.Getenv("TEST_WEBHOOK")
+	infoWebhook := os.Getenv("INFO_WEBHOOK")
+	errorWebhook := os.Getenv("ERROR_WEBHOOK")
 	mode := os.Getenv("MODE")
 	mockWebhook := os.Getenv("MOCK_WEBHOOK")
 	mockTradeService := services.NewMockTradeService(mockWebhook)
@@ -57,8 +56,8 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		tradeService = services.NewTradeService(&services.TSConifg{
 			TradeRepository:  tradeRepository,
 			WalletRepository: walletRepository,
-			InfoWebhook:      testWebhook,
-			ErrorWebhook:     testWebhook,
+			InfoWebhook:      infoWebhook,
+			ErrorWebhook:     errorWebhook,
 			Delay:            time.Duration(time.Duration(td) * time.Second),
 		})
 	} else {
@@ -86,6 +85,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 
 	log.Printf("Setting %v cron jobs for system\n", len(*jobs))
 	for _, job := range *jobs {
+		job := job
 		ctx := context.TODO()
 		cronService.AddCronFunc(ctx, &job)
 	}

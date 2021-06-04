@@ -75,6 +75,9 @@ func NewHandler(c *Config) {
 		g_crypto.DELETE("/auto_trade", middleware.AuthUser(h.TokenService), h.DeleteAutoTrade)
 		g_crypto.GET("/auto_trades", middleware.AuthUser(h.TokenService), h.GetAutoTrades)
 		g_crypto.GET("/income", middleware.AuthUser(h.TokenService), h.GetIncomeRate)
+
+		g_crypto.POST("/trade", middleware.AuthService(c.ServiceToken), h.Trade)
+		g_crypto.GET("/auto_trade", middleware.AuthService(c.ServiceToken), h.GetAutoTradeInfo)
 	} else {
 		g_user.GET("/me", h.Me)
 		g_user.POST("/signout", h.Signout)

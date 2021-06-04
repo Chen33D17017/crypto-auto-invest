@@ -75,7 +75,7 @@ func (s *tradeService) MarketTrade(ctx context.Context, u *model.User, amount fl
 		if err != nil {
 			s.SendTradeRst(fmt.Sprintf("Fail to calculate %s's income rate on (cryptoName %s, strategy %v)", u.Name, cryptoName, strategyID), "error")
 		}
-		s.SendTradeRst(fmt.Sprintf("%s's income rate on (cryptoName %s, strategy %v): %v", u.Name, cryptoName, strategyID, incomeRate), "info")
+		s.SendTradeRst(fmt.Sprintf("%s's income rate on (cryptoName %s, strategy %v): %s", u.Name, cryptoName, strategyID, incomeRate.IncomeRate), "info")
 	})
 	return order, nil
 }
@@ -210,7 +210,7 @@ func (s *tradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName
 		log.Printf("SERVICE: Fail to get crypto price %s err: %s\n", cryptoName, err.Error())
 		return rst, apperrors.NewInternal()
 	}
-	incomeRate := normalizeFloat((amount*lastPrice + JPY) / cost * 100)
+	incomeRate := normalizeFloat((amount*lastPrice + JPY - cost) / cost * 100)
 	rst.CryptoName = cryptoName
 	rst.Strategy = strategyID
 	rst.Amount = amount
@@ -229,7 +229,10 @@ func (s *tradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName
 			}
 		}
 		rst.Deposit = total
-		rst.DepositIncomeRate = fmt.Sprintf("%v%%", normalizeFloat((amount*lastPrice+JPY)/total*100))
+		rst.DepositIncomeRate = fmt.Sprintf("%v%%", normalizeFloat((amount*lastPrice+JPY-total)/total*100))
+	} else {
+		rst.Deposit = cost
+		rst.DepositIncomeRate = fmt.Sprintf("%v%%", incomeRate)
 	}
 	return rst, nil
 }

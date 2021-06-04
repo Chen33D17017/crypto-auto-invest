@@ -8,12 +8,12 @@ import (
 )
 
 type tradeReq struct {
-	CryptoName string  `json:"crypto_name" binding:"required"`
 	UID        string  `json:"uid" binding:"required"`
 	Amount     float64 `json:"amount" binding:"required"`
 	Action     string  `json:"action" binding:"required"`
+	CryptoName string  `json:"crypto_name" binding:"required"`
 	Strategy   int     `json:"strategy"`
-	Type       string  `json:"type" binding:"required"`
+  Type       string  `json:"type" binding:"required"`
 }
 
 func (h *Handler) Trade(c *gin.Context) {
@@ -64,7 +64,6 @@ func (h *Handler) MockTrade(c *gin.Context) {
 	case "limit":
 		_, err = h.MockTradeService.LimitTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
 	}
-
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())
 		c.JSON(err.Status(), gin.H{
