@@ -50,6 +50,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	//errorWebhook := os.Getenv("ERROR_WEBHOOK")
 	testWebhook := os.Getenv("TEST_WEBHOOK")
 	mode := os.Getenv("MODE")
+	mockTradeService := services.NewMockTradeService()
 	var tradeService model.TradeService
 	if mode == "dev" {
 		tradeService = services.NewTradeService(&services.TSConifg{
@@ -60,7 +61,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 			Delay:            time.Duration(time.Duration(td) * time.Second),
 		})
 	} else {
-		tradeService = services.NewMockTradeService()
+		tradeService = mockTradeService
 	}
 
 	// init cron job manager
@@ -163,6 +164,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	}
 
 	serviceToken := os.Getenv("HEADER_SECRET")
+	mockWebhook := os.Getenv("MOCK_WEBHOOK")
 
 	handler.NewHandler(&handler.Config{
 		R:                router,
@@ -175,6 +177,8 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		BaseURL:          baseURL,
 		TimeoutDuration:  time.Duration(time.Duration(ht) * time.Second),
 		ServiceToken:     serviceToken,
+		MockWebhook:      mockWebhook,
+		MockTradeService: mockTradeService,
 	})
 
 	return router, nil

@@ -17,6 +17,7 @@ type Handler struct {
 	TradeService     model.TradeService
 	CronService      model.CronService
 	AutoTradeService model.AutoTradeService
+	MockTradeService model.TradeService
 }
 
 type Config struct {
@@ -30,6 +31,8 @@ type Config struct {
 	BaseURL          string
 	TimeoutDuration  time.Duration
 	ServiceToken     string
+	MockWebhook      string
+	MockTradeService model.TradeService
 }
 
 func NewHandler(c *Config) {
@@ -40,10 +43,13 @@ func NewHandler(c *Config) {
 		TradeService:     c.TradeService,
 		CronService:      c.CronService,
 		AutoTradeService: c.AutoTradeService,
+		MockTradeService: c.MockTradeService,
 	}
 	g_user := c.R.Group(c.BaseURL)
 	g_price := c.R.Group("/api/bitbank")
 	g_crypto := c.R.Group("/api/crypto")
+	g_admin := c.R.Group("/api/admin")
+	g_mock := c.R.Group("/api/mock")
 
 	if gin.Mode() != gin.TestMode {
 		g_user.Use(middleware.Timeout(c.TimeoutDuration, apperrors.NewServiceUnavailable()))
@@ -66,7 +72,6 @@ func NewHandler(c *Config) {
 		g_price.GET("/trade", middleware.AuthUser(h.TokenService), h.GetTrade)
 		g_price.GET("/historys", middleware.AuthUser(h.TokenService), h.GetHistory)
 
-		g_crypto.POST("/order", middleware.AuthUser(h.TokenService), h.SaveOrder)
 		g_crypto.POST("/auto_trade", middleware.AuthUser(h.TokenService), h.AddAutoTrade)
 		g_crypto.DELETE("/auto_trade", middleware.AuthUser(h.TokenService), h.DeleteAutoTrade)
 		g_crypto.GET("/auto_trades", middleware.AuthUser(h.TokenService), h.GetAutoTrades)
@@ -86,8 +91,11 @@ func NewHandler(c *Config) {
 	g_user.POST("/image", h.Image)
 	g_user.DELETE("/image", h.DeleteImage)
 
-	g_crypto.POST("/trade", middleware.AuthService(c.ServiceToken), h.Trade)
-	g_crypto.GET("/auto_trade", middleware.AuthService(c.ServiceToken), h.GetAutoTradeInfo)
+	g_admin.POST("/trade", middleware.AuthService(c.ServiceToken), h.Trade)
+	g_mock.POST("/trade", middleware.AuthService(c.ServiceToken), h.Trade)
+	g_admin.GET("/auto_trade", middleware.AuthService(c.ServiceToken), h.GetAutoTradeInfo)
+	g_admin.GET("/all_auto_trade", middleware.AuthService(c.ServiceToken), h.GetAllAutoTrades)
+	g_admin.POST("/order", middleware.AuthService(c.ServiceToken), h.SaveOrder)
 }
 
 func (h *Handler) Image(c *gin.Context) {
