@@ -97,16 +97,28 @@ func CheckAssets(s model.Secret) ([]model.Asset, error) {
 	return response.Data.Assets, nil
 }
 
-func MakeTrade(s model.Secret, cryptoName string, buy_sell string, amount float64, tradeType string, postOnly bool) (model.Order, error) {
+func MakeTrade(s model.Secret, cryptoName string, buy_sell string, amount float64, tradeType string, price float64, postOnly bool) (model.Order, error) {
 	url := fmt.Sprintf("/v1/user/spot/order")
 	var response model.OrderRst
+	var order interface{}
 
-	order := model.OrderRequest{
-		Pair:     fmt.Sprintf("%s_jpy", cryptoName),
-		Amount:   fmt.Sprintf("%.4f", amount),
-		Side:     buy_sell,
-		Type:     tradeType,
-		PostOnly: postOnly,
+	if tradeType == "limit" {
+		order = model.LimitOrderRequest{
+			Pair:     fmt.Sprintf("%s_jpy", cryptoName),
+			Amount:   fmt.Sprintf("%.4f", amount),
+			Price:    fmt.Sprintf("%v", price),
+			Side:     buy_sell,
+			Type:     tradeType,
+			PostOnly: postOnly,
+		}
+	} else {
+		order = model.OrderRequest{
+			Pair:     fmt.Sprintf("%s_jpy", cryptoName),
+			Amount:   fmt.Sprintf("%.4f", amount),
+			Side:     buy_sell,
+			Type:     tradeType,
+			PostOnly: postOnly,
+		}
 	}
 
 	reqBody, _ := json.Marshal(order)
@@ -126,11 +138,11 @@ func BuyWithJPY(s model.Secret, cryptoName string, JPY int64) (model.Order, erro
 	cryptPrice, _ := strconv.Atoi(cryptmsg.Buy)
 	amount := float64(JPY) / float64(cryptPrice)
 
-	return MakeTrade(s, cryptoName, "buy", amount, "market", false)
+	return MakeTrade(s, cryptoName, "buy", amount, "market", 0, false)
 }
 
 func SellToJPY(s model.Secret, cryptoName string, amount float64) (model.Order, error) {
-	return MakeTrade(s, cryptoName, "sell", amount, "market", false)
+	return MakeTrade(s, cryptoName, "sell", amount, "market", 0, false)
 }
 
 func GetTradeHistory(s model.Secret, cryptoName string) ([]model.Trade, error) {

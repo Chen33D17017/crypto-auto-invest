@@ -80,13 +80,13 @@ func (s *tradeService) MarketTrade(ctx context.Context, u *model.User, amount fl
 	return order, nil
 }
 
-func (s *tradeService) LimitTrade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategyID int) (bm.Order, error) {
+func (s *tradeService) LimitTrade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, price float64) (bm.Order, error) {
 	var order bm.Order
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
 	}
-	order, err := bitbank.MakeTrade(secret, cryptoName, action, amount, "limit", true)
+	order, err := bitbank.MakeTrade(secret, cryptoName, action, amount, "limit", price, true)
 	if err != nil {
 		return order, apperrors.NewInternalWithReason(fmt.Sprintf("SERVICE MakeOrder: %s", err.Error()))
 	}
@@ -94,7 +94,7 @@ func (s *tradeService) LimitTrade(ctx context.Context, u *model.User, amount flo
 	return order, nil
 }
 
-func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName string, strategy_id int) error {
+func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName string, strategyID int) error {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
@@ -108,7 +108,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	// if the order is not be fully filled yet
 	if o.Status != "FULLY_FILLED" {
 		time.AfterFunc(time.Duration(time.Second*30), func() {
-			s.SaveOrder(context.TODO(), u, orderID, cryptoName, strategy_id)
+			s.SaveOrder(context.TODO(), u, orderID, cryptoName, strategyID)
 		})
 		return nil
 	}
@@ -144,7 +144,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	} else {
 		target.Fee = normalizeFloat(amount * avgPrice * 0.0012)
 	}
-	target.Strategy = strategy_id
+	target.Strategy = strategyID
 
 	err = s.TradeRepository.SaveOrder(ctx, &target)
 	if err != nil {
@@ -157,9 +157,9 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		u.Name, o.Side, o.StartAmount, o.Pair, o.AveragePrice, JPY, time.Unix(o.OrderedAt/1000, 0).In(loc).Format(time.RFC822)), "info")
 
 	// Money movement between sub wallets when strategy is not 0
-	if strategy_id != 0 {
-		JPYWallet, err1 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[0], strategy_id)
-		currencyWallet, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1], strategy_id)
+	if strategyID != 0 {
+		JPYWallet, err1 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[0], strategyID)
+		currencyWallet, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1], strategyID)
 		if err1 != nil || err2 != nil {
 			log.Printf("Wrong cuncerrency with user %v", u.UID)
 			s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
