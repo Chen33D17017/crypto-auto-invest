@@ -14,9 +14,15 @@ func NewMockTradeService() model.TradeService {
 	return &mocktTradeService{}
 }
 
-func (s *mocktTradeService) Trade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
+func (s *mocktTradeService) MarketTrade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
 	mock := bm.Order{}
-	log.Printf("%s %s %s with %v strategt: %v\n", u.Name, action, cryptoName, amount, strategy)
+	log.Printf("Market: %s %s %s with %v strategt: %v\n", u.Name, action, cryptoName, amount, strategy)
+	return mock, nil
+}
+
+func (s *mocktTradeService) LimitTrade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategy int) (bm.Order, error) {
+	mock := bm.Order{}
+	log.Printf("Limit: %s %s %s with %v strategt: %v\n", u.Name, action, cryptoName, amount, strategy)
 	return mock, nil
 }
 

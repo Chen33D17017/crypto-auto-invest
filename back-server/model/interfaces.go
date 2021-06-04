@@ -31,7 +31,8 @@ type WalletService interface {
 }
 
 type TradeService interface {
-	Trade(ctx context.Context, u *User, amount float64, action, cryptoName string, strategy int) (bm.Order, error)
+	MarketTrade(ctx context.Context, u *User, amount float64, action, cryptoName string, strategy int) (bm.Order, error)
+	LimitTrade(ctx context.Context, u *User, amount float64, action, cryptoName string, strategyID int) (bm.Order, error)
 	SaveOrder(ctx context.Context, u *User, orderID string, cryptoName string, strategy int) error
 	CalIncomeRate(ctx context.Context, uid string, cryptoName string, strategyID int) (*Income, error)
 	SendTradeRst(msg string, level string) error

@@ -13,12 +13,11 @@ type tradeReq struct {
 	Amount     float64 `json:"amount" binding:"required"`
 	Action     string  `json:"action" binding:"required"`
 	Strategy   int     `json:"strategy" binding:"required"`
+	Type       string  `json:"type" binding:"required"`
 }
 
 func (h *Handler) Trade(c *gin.Context) {
-
 	var req tradeReq
-
 	if ok := bindData(c, &req); !ok {
 		return
 	}
@@ -27,7 +26,14 @@ func (h *Handler) Trade(c *gin.Context) {
 
 	user, err := h.UserService.Get(ctx, req.UID)
 
-	_, err = h.TradeService.Trade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+	switch req.Type {
+	case "market":
+		_, err = h.TradeService.MarketTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+
+	case "limit":
+		_, err = h.TradeService.LimitTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+	}
+
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())
 		c.JSON(err.Status(), gin.H{

@@ -46,9 +46,7 @@ func NewTradeService(c *TSConifg) model.TradeService {
 	}
 }
 
-// Buy unit JPY
-// Sell unit crypto currency
-func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategyID int) (bm.Order, error) {
+func (s *tradeService) MarketTrade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategyID int) (bm.Order, error) {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
@@ -82,6 +80,20 @@ func (s *tradeService) Trade(ctx context.Context, u *model.User, amount float64,
 	return order, nil
 }
 
+func (s *tradeService) LimitTrade(ctx context.Context, u *model.User, amount float64, action, cryptoName string, strategyID int) (bm.Order, error) {
+	var order bm.Order
+	secret := bm.Secret{
+		ApiKey:    u.ApiKey,
+		ApiSecret: u.ApiSecret,
+	}
+	order, err := bitbank.MakeTrade(secret, cryptoName, action, amount, "limit", true)
+	if err != nil {
+		return order, apperrors.NewInternalWithReason(fmt.Sprintf("SERVICE MakeOrder: %s", err.Error()))
+	}
+
+	return order, nil
+}
+
 func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName string, strategy_id int) error {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
@@ -90,8 +102,17 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	o, err := bitbank.GetOrderInfo(secret, cryptoName, orderID)
 	if err != nil {
 		s.SendTradeRst(fmt.Sprintf("%s fail to get order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
-		return apperrors.NewInternal()
+		return apperrors.NewInternalWithReason(fmt.Sprintf("SERVICE SaveOrder: %s", err.Error()))
 	}
+
+	// if the order is not be fully filled yet
+	if o.Status != "FULLY_FILLED" {
+		time.AfterFunc(time.Duration(time.Second*30), func() {
+			s.SaveOrder(context.TODO(), u, orderID, cryptoName, strategy_id)
+		})
+		return nil
+	}
+
 	var target model.Order
 	target.OID = fmt.Sprintf("%v", o.OrderId)
 	target.UID = u.UID
@@ -100,9 +121,8 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 
 	amount, err := strconv.ParseFloat(o.StartAmount, 64)
 	if err != nil {
-		log.Printf("Fail to convert Amount")
 		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
-		return apperrors.NewBadRequest("Wrong struct on order")
+		return apperrors.NewBadRequest("Fail to convert Amount")
 	}
 	amount = normalizeFloat(amount)
 	target.Amount = amount
@@ -119,20 +139,24 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	currencies := strings.Split(o.Pair, "_")
 
 	JPY := normalizeFloat(amount * avgPrice)
-	target.Fee = normalizeFloat(amount * avgPrice * 0.0012)
+	if o.Type == "limit" {
+		target.Fee = -normalizeFloat(amount * avgPrice * 0.0002)
+	} else {
+		target.Fee = normalizeFloat(amount * avgPrice * 0.0012)
+	}
 	target.Strategy = strategy_id
 
 	err = s.TradeRepository.SaveOrder(ctx, &target)
 	if err != nil {
 		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
-		log.Printf("Fail to Store Trade Result with %v err: %s\n", o.OrderId, err.Error())
-		return apperrors.NewInternal()
+		return apperrors.NewInternalWithReason(fmt.Sprintf("SERVICE SaveOrder: %s", err.Error()))
 	}
+
 	loc := time.FixedZone("UTC+9", 9*60*60)
 	s.SendTradeRst(fmt.Sprintf("%s %s %v(%s, ¥%s) with ¥%v @%v",
 		u.Name, o.Side, o.StartAmount, o.Pair, o.AveragePrice, JPY, time.Unix(o.OrderedAt/1000, 0).In(loc).Format(time.RFC822)), "info")
 
-	// Money movement between wallets when orderType is auto
+	// Money movement between sub wallets when strategy is not 0
 	if strategy_id != 0 {
 		JPYWallet, err1 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[0], strategy_id)
 		currencyWallet, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1], strategy_id)
