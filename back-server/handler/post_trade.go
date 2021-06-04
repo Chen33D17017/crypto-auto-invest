@@ -47,7 +47,7 @@ func (h *Handler) Trade(c *gin.Context) {
 		log.Println(err.(*apperrors.Error).Internal)
 		err := apperrors.NewBadRequest(err.Error())
 		c.JSON(err.Status(), gin.H{
-			"error": err,
+			"error": err.Internal,
 		})
 		return
 	}
