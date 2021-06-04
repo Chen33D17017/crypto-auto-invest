@@ -52,7 +52,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	mockWebhook := os.Getenv("MOCK_WEBHOOK")
 	mockTradeService := services.NewMockTradeService(mockWebhook)
 	var tradeService model.TradeService
-	if mode == "dev" {
+	if mode == "prod" {
 		tradeService = services.NewTradeService(&services.TSConifg{
 			TradeRepository:  tradeRepository,
 			WalletRepository: walletRepository,
