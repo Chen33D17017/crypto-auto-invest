@@ -1,6 +1,7 @@
 package handler
 
 import (
+	bm "crypto-auto-invest/bitbank/model"
 	"crypto-auto-invest/model/apperrors"
 	"log"
 	"net/http"
@@ -20,6 +21,7 @@ type tradeReq struct {
 
 func (h *Handler) Trade(c *gin.Context) {
 	var req tradeReq
+	var res bm.Order
 	if ok := bindData(c, &req); !ok {
 		return
 	}
@@ -30,7 +32,7 @@ func (h *Handler) Trade(c *gin.Context) {
 
 	switch req.Type {
 	case "market":
-		_, err = h.TradeService.MarketTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
+		res, err = h.TradeService.MarketTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Strategy)
 
 	case "limit":
 		if req.Price == 0 {
@@ -40,7 +42,7 @@ func (h *Handler) Trade(c *gin.Context) {
 			})
 			return
 		}
-		_, err = h.TradeService.LimitTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Price)
+		res, err = h.TradeService.LimitTrade(ctx, user, req.Amount, req.Action, req.CryptoName, req.Price)
 	}
 
 	if err != nil {
@@ -53,7 +55,7 @@ func (h *Handler) Trade(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": "success",
+		"data": res,
 	})
 }
 

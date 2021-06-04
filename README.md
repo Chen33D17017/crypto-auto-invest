@@ -7,9 +7,9 @@ This is a simple project which use to support personal crypto concurrency invest
   - MySQL
 
 ## TODO 
-  - [] Error Handling
-  - [] Mock trade service
-  - [] Change functionality of getting user strategy
+  - [ ] Error Handling
+  - [x] Mock trade service
+  - [x] Change functionality of getting user strategy
   - [] Info Service
   - [] Cron job for calculating income
 ## Other
