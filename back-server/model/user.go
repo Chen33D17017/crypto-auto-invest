@@ -6,6 +6,6 @@ type User struct {
 	Password  string `db:"password" json:"-"`
 	Name      string `db:"name" json:"name"`
 	ImageURL  string `db:"image_url" json:"imageUrl"`
-	ApiKey    string `db:"api_key" json:"api_key"`
-	ApiSecret string `db:"api_secret" json:"api_secret"`
+	ApiKey    string `db:"api_key" json:"-"`
+	ApiSecret string `db:"api_secret" json:"-"`
 }
