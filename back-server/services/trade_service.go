@@ -158,8 +158,8 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 
 	// Money movement between sub wallets when strategy is not 0
 	if strategyID != 0 {
-		JPYWallet, err1 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[0], strategyID)
-		currencyWallet, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1], strategyID)
+		cryptoWallet, err1 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[0], strategyID)
+		JPYwallet, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1], strategyID)
 		if err1 != nil || err2 != nil {
 			log.Printf("Wrong cuncerrency with user %v", u.UID)
 			s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
@@ -167,11 +167,11 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		}
 		switch o.Side {
 		case "buy":
-			s.WalletRepository.UpdateAmount(ctx, JPYWallet.WID, -(JPY + target.Fee))
-			s.WalletRepository.UpdateAmount(ctx, currencyWallet.WID, amount)
+			s.WalletRepository.UpdateAmount(ctx, JPYwallet.WID, JPYwallet.Amount-(JPY+target.Fee))
+			s.WalletRepository.UpdateAmount(ctx, cryptoWallet.WID, cryptoWallet.Amount+amount)
 		case "sell":
-			s.WalletRepository.UpdateAmount(ctx, JPYWallet.WID, -amount)
-			s.WalletRepository.UpdateAmount(ctx, currencyWallet.WID, (JPY - target.Fee))
+			s.WalletRepository.UpdateAmount(ctx, cryptoWallet.WID, cryptoWallet.Amount-amount)
+			s.WalletRepository.UpdateAmount(ctx, JPYwallet.WID, JPYwallet.Amount+(JPY-target.Fee))
 		}
 	}
 
