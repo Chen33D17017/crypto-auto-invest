@@ -54,7 +54,7 @@ func (h *Handler) MockSaveOrder(c *gin.Context) {
 	u, _ := h.UserService.Get(ctx, req.UID)
 
 	orderID := fmt.Sprintf("%v", req.OrderID)
-	err := h.MockTradeService.SaveOrder(ctx, u, orderID, req.CryptoName, 0)
+	err := h.MockTradeService.SaveOrder(ctx, u, orderID, req.CryptoName, req.StragetyID)
 
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())
