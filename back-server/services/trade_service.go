@@ -220,6 +220,11 @@ func (s *tradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName
 	if strategyID != 0 {
 		chargeAmount := 0.0
 		chargeJPY := 0.0
+		cryptoWallet, _ := s.WalletRepository.GetWellet(ctx, uid, cryptoName, strategyID)
+		JPYWallet, _ := s.WalletRepository.GetWellet(ctx, uid, "jpy", strategyID)
+		if err != nil {
+			return rst, err
+		}
 		logs, err := s.WalletRepository.GetChargeLogs(ctx, uid, cryptoName, strategyID)
 		if err != nil {
 			return rst, err
@@ -235,9 +240,10 @@ func (s *tradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName
 		for _, log := range *logs {
 			chargeJPY += log.Amount
 		}
-
+		JPYincome := JPYWallet.Amount - JPY
+		cryptoIncmome := cryptoWallet.Amount - chargeAmount
 		rst.Deposit = chargeAmount*lastPrice + chargeJPY
-		rst.DepositIncomeRate = fmt.Sprintf("%v%%", normalizeFloat(((amount-chargeAmount)*lastPrice+JPY-chargeJPY)/rst.Deposit*100))
+		rst.DepositIncomeRate = fmt.Sprintf("%v%%", normalizeFloat((cryptoIncmome*lastPrice+JPYincome)/rst.Deposit*100))
 	} else {
 		rst.Deposit = cost
 		rst.DepositIncomeRate = fmt.Sprintf("%v%%", incomeRate)
