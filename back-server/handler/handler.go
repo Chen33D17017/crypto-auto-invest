@@ -99,6 +99,7 @@ func NewHandler(c *Config) {
 	g_admin.GET("/all_auto_trades", middleware.AuthService(c.ServiceToken), h.GetAllAutoTrades)
 	g_admin.POST("/order", middleware.AuthService(c.ServiceToken), h.SaveOrder)
 	g_mock.POST("/order", middleware.AuthService(c.ServiceToken), h.MockSaveOrder)
+	g_admin.POST("/cancel", middleware.AuthService(c.ServiceToken), h.CancelOrder)
 }
 
 func (h *Handler) Image(c *gin.Context) {

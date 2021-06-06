@@ -164,3 +164,19 @@ func GetOrderInfo(s model.Secret, cryptoName, order_id string) (model.Order, err
 	}
 	return response.Data, nil
 }
+
+func CancelOrder(s model.Secret, cryptoName, order_id string) (model.Order, error) {
+	var response model.OrderRst
+	url := fmt.Sprintf("/v1/user/spot/cancel_order")
+	req := model.CancelOrderRequest{
+		Pair:    fmt.Sprintf("%s_jpy", cryptoName),
+		OrderID: order_id,
+	}
+	reqBody, _ := json.Marshal(req)
+	err := postRequest(s, url, reqBody, &response)
+	if err != nil {
+		return response.Data, err
+	}
+
+	return response.Data, nil
+}

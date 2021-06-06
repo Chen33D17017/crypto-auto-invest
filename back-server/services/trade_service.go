@@ -226,6 +226,10 @@ func (s *tradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName
 		for _, log := range *logs {
 			if log.CryptoName == "jpy" {
 				total += log.Amount
+			} else {
+				price, _ := bitbank.GetPrice(log.CryptoName)
+				lastPrice, _ := strconv.ParseFloat(price.Last, 64)
+				total += lastPrice * log.Amount
 			}
 		}
 		rst.Deposit = total
