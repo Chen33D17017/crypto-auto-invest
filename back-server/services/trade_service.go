@@ -62,20 +62,20 @@ func (s *tradeService) MarketTrade(ctx context.Context, u *model.User, amount fl
 		return order, apperrors.NewInternal()
 	}
 	if err != nil {
-		s.SendTradeRst(fmt.Sprintf("SERVICE: Trade err with user: %s cryptoName: %s, Amount: %v, Side: %s\n", u.UID, cryptoName, amount, action), "error")
+		s.sendTradeRst(fmt.Sprintf("SERVICE: Trade err with user: %s cryptoName: %s, Amount: %v, Side: %s\n", u.UID, cryptoName, amount, action), "error", true)
 		return order, apperrors.NewInternal()
 	}
 
 	time.AfterFunc(s.Delay, func() {
-		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), cryptoName, strategyID)
+		s.SaveOrder(context.TODO(), u, fmt.Sprintf("%v", order.OrderId), cryptoName, strategyID, false)
 	})
 
 	time.AfterFunc(s.Delay+time.Duration(time.Second*30), func() {
 		incomeRate, err := s.CalIncomeRate(context.TODO(), u.UID, cryptoName, strategyID)
 		if err != nil {
-			s.SendTradeRst(fmt.Sprintf("Fail to calculate %s's income rate on (cryptoName %s, strategy %v)", u.Name, cryptoName, strategyID), "error")
+			s.sendTradeRst(fmt.Sprintf("Fail to calculate %s's income rate on (cryptoName %s, strategy %v)", u.Name, cryptoName, strategyID), "error", true)
 		}
-		s.SendTradeRst(fmt.Sprintf("%s's income rate on (cryptoName %s, strategy %v): %s", u.Name, cryptoName, strategyID, incomeRate.IncomeRate), "info")
+		s.sendTradeRst(fmt.Sprintf("%s's income rate on (cryptoName %s, strategy %v): %s", u.Name, cryptoName, strategyID, incomeRate.IncomeRate), "info", true)
 	})
 	return order, nil
 }
@@ -94,21 +94,21 @@ func (s *tradeService) LimitTrade(ctx context.Context, u *model.User, amount flo
 	return order, nil
 }
 
-func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName string, strategyID int) error {
+func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID string, cryptoName string, strategyID int, info bool) error {
 	secret := bm.Secret{
 		ApiKey:    u.ApiKey,
 		ApiSecret: u.ApiSecret,
 	}
 	o, err := bitbank.GetOrderInfo(secret, cryptoName, orderID)
 	if err != nil {
-		s.SendTradeRst(fmt.Sprintf("%s fail to get order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
+		s.sendTradeRst(fmt.Sprintf("%s fail to get order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error", info)
 		return apperrors.NewInternalWithReason(fmt.Sprintf("SERVICE SaveOrder: %s", err.Error()))
 	}
 
 	// if the order is not be fully filled yet
 	if o.Status != "FULLY_FILLED" {
 		time.AfterFunc(time.Duration(time.Second*30), func() {
-			s.SaveOrder(context.TODO(), u, orderID, cryptoName, strategyID)
+			s.SaveOrder(context.TODO(), u, orderID, cryptoName, strategyID, false)
 		})
 		return nil
 	}
@@ -121,7 +121,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 
 	amount, err := strconv.ParseFloat(o.StartAmount, 64)
 	if err != nil {
-		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
+		s.sendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error", info)
 		return apperrors.NewBadRequest("Fail to convert Amount")
 	}
 	amount = normalizeFloat(amount)
@@ -130,7 +130,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 	avgPrice, err := strconv.ParseFloat(o.AveragePrice, 64)
 	if err != nil {
 		log.Printf("Fail to convert AvgPrice")
-		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
+		s.sendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error", info)
 		return apperrors.NewBadRequest("Wrong struct on order")
 	}
 	target.Price = avgPrice
@@ -148,13 +148,13 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 
 	err = s.TradeRepository.SaveOrder(ctx, &target)
 	if err != nil {
-		s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
+		s.sendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error", info)
 		return apperrors.NewInternalWithReason(fmt.Sprintf("SERVICE SaveOrder: %s", err.Error()))
 	}
 
 	loc := time.FixedZone("UTC+9", 9*60*60)
-	s.SendTradeRst(fmt.Sprintf("%s %s %v(%s, ¥%s) with ¥%v @%v",
-		u.Name, o.Side, o.StartAmount, o.Pair, o.AveragePrice, JPY, time.Unix(o.OrderedAt/1000, 0).In(loc).Format(time.RFC822)), "info")
+	s.sendTradeRst(fmt.Sprintf("%s %s %v(%s, ¥%s) with ¥%v @%v",
+		u.Name, o.Side, o.StartAmount, o.Pair, o.AveragePrice, JPY, time.Unix(o.OrderedAt/1000, 0).In(loc).Format(time.RFC822)), "info", info)
 
 	// Money movement between sub wallets when strategy is not 0
 	if strategyID != 0 {
@@ -162,7 +162,7 @@ func (s *tradeService) SaveOrder(ctx context.Context, u *model.User, orderID str
 		JPYwallet, err2 := s.WalletRepository.GetWellet(ctx, u.UID, currencies[1], strategyID)
 		if err1 != nil || err2 != nil {
 			log.Printf("Wrong cuncerrency with user %v", u.UID)
-			s.SendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error")
+			s.sendTradeRst(fmt.Sprintf("%s fail to save order with cryptoName: %s, OrderID: %s", u.Name, cryptoName, orderID), "error", info)
 			return apperrors.NewInternal()
 		}
 		switch o.Side {
@@ -251,8 +251,11 @@ func (s *tradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName
 	return rst, nil
 }
 
-func (s *tradeService) SendTradeRst(msg string, level string) error {
+func (s *tradeService) sendTradeRst(msg string, level string, info bool) error {
 	var url string
+	if !info {
+		return nil
+	}
 	switch level {
 	case "info":
 		url = s.InfoWebhook
