@@ -13,6 +13,7 @@ type saveOrderReq struct {
 	OrderID    int64  `json:"order_id" binding:"required"`
 	CryptoName string `json:"crypto_name" binding:"required"`
 	StragetyID int    `json:"strategy_id"`
+	Info       bool   `json:"info"`
 }
 
 func (h *Handler) SaveOrder(c *gin.Context) {
@@ -27,7 +28,7 @@ func (h *Handler) SaveOrder(c *gin.Context) {
 	u, _ := h.UserService.Get(ctx, req.UID)
 
 	orderID := fmt.Sprintf("%v", req.OrderID)
-	err := h.TradeService.SaveOrder(ctx, u, orderID, req.CryptoName, req.StragetyID)
+	err := h.TradeService.SaveOrder(ctx, u, orderID, req.CryptoName, req.StragetyID, req.Info)
 
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())
@@ -54,7 +55,7 @@ func (h *Handler) MockSaveOrder(c *gin.Context) {
 	u, _ := h.UserService.Get(ctx, req.UID)
 
 	orderID := fmt.Sprintf("%v", req.OrderID)
-	err := h.MockTradeService.SaveOrder(ctx, u, orderID, req.CryptoName, req.StragetyID)
+	err := h.MockTradeService.SaveOrder(ctx, u, orderID, req.CryptoName, req.StragetyID, req.Info)
 
 	if err != nil {
 		err := apperrors.NewBadRequest(err.Error())
