@@ -240,7 +240,7 @@ func (s *tradeService) CalIncomeRate(ctx context.Context, uid string, cryptoName
 		for _, log := range *logs {
 			chargeJPY += log.Amount
 		}
-		JPYincome := JPYWallet.Amount - JPY
+		JPYincome := JPYWallet.Amount - chargeJPY
 		cryptoIncmome := cryptoWallet.Amount - chargeAmount
 		rst.Deposit = chargeAmount*lastPrice + chargeJPY
 		rst.DepositIncomeRate = fmt.Sprintf("%v%%", normalizeFloat((cryptoIncmome*lastPrice+JPYincome)/rst.Deposit*100))
