@@ -31,6 +31,7 @@ func NewWalletRepository(db *sqlx.DB) model.WalletRepository {
 }
 func (r *walletRepository) AddWallet(ctx context.Context, uid string, cid int, strategyID int) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryAddWallet)
+	defer stmt.Close()
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to Add Wallet: %v\n", err)
 		return apperrors.NewInternal()
@@ -75,6 +76,7 @@ func (r *walletRepository) GetWallets(ctx context.Context, uid string, strategyI
 
 func (r *walletRepository) UpdateAmount(ctx context.Context, wid string, amount float64) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryUpdateAmount)
+	defer stmt.Close()
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to prepare update query: %v\n", err)
 		return apperrors.NewInternal()
@@ -99,6 +101,7 @@ func (r *walletRepository) GetCurrencyID(ctx context.Context, currencyName strin
 
 func (r *walletRepository) AddChargeLog(ctx context.Context, uid string, cid int, strategyID int, amount float64) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryAddChargeLog)
+	stmt.Close()
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to add charge log: %v\n", err)
 		return apperrors.NewInternal()
