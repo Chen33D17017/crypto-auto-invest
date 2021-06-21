@@ -31,6 +31,7 @@ func NewCronRepository(db *sqlx.DB) model.CronRepository {
 
 func (r *cronRepository) AddCron(ctx context.Context, cb *model.Cron, currencyID int) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryAddCron)
+	defer stmt.Close()
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to Add Cron: %v\n", err)
 		return apperrors.NewInternal()
@@ -65,6 +66,7 @@ func (r *cronRepository) GetCrons(ctx context.Context, uid string) (*[]model.Cro
 
 func (r *cronRepository) UpdateCron(ctx context.Context, cb *model.Cron, currencyID int) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryUpdateCron)
+	defer stmt.Close()
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to prepare update query: %v\n", err)
 		return apperrors.NewInternal()
@@ -79,6 +81,7 @@ func (r *cronRepository) UpdateCron(ctx context.Context, cb *model.Cron, currenc
 
 func (r *cronRepository) DeleteCron(ctx context.Context, userID string, cronID string) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryDeleteCron)
+	defer stmt.Close()
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to prepare update query: %v\n", err)
 		return apperrors.NewInternal()

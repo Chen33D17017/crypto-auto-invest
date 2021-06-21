@@ -29,11 +29,10 @@ func NewAutoTradeRepository(db *sqlx.DB) model.AutoTradeRepository {
 
 func (r *autoTradeRepository) AddAutoTrade(ctx context.Context, uid string, cryptoID int, strategyID int) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryAddAutoTrade)
+	defer stmt.Close()
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to prepare update query: %v\n", err)
-		return apperrors.NewInternal()
 	}
-
 	if _, err := stmt.ExecContext(ctx, uid, cryptoID, strategyID); err != nil {
 		log.Printf("REPOSITORY: Failed to add auto trade for user: %v err: %s\n", uid, err.Error())
 		return apperrors.NewInternal()
@@ -43,6 +42,7 @@ func (r *autoTradeRepository) AddAutoTrade(ctx context.Context, uid string, cryp
 
 func (r *autoTradeRepository) DeleteAutoTrade(ctx context.Context, uid string, cryptoID int, strategyID int) error {
 	stmt, err := r.DB.PrepareContext(ctx, queryDeleteAutoTrade)
+	defer stmt.Close()
 	if err != nil {
 		log.Printf("REPOSITORY: Unable to prepare update query: %v\n", err)
 		return apperrors.NewInternal()
