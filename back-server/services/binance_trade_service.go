@@ -68,7 +68,7 @@ func (s *binanceTradeService) SaveOrder(ctx context.Context, uid string, symbol 
 
 	incomeRate := (amount*avgCost - cost) / cost * 100
 
-	resultMsg := fmt.Sprintf("%s %s %s amount: %v @%v, income rate now: %v", user.Name, action, symbol, qty, avgCost, normalizeFloat(incomeRate))
+	resultMsg := fmt.Sprintf("%s %s %s amount: %v @%v, income rate now: %v%%", user.Name, action, symbol, qty, avgCost, normalizeFloat(incomeRate))
 	err = s.sendResult(resultMsg)
 	if err != nil {
 		return order, err
