@@ -35,6 +35,10 @@ services:
       context: ./back-server
       target: builder
     image: back-server
+    logging:
+      options:
+          max-size: "10m"
+          max-file: "3"
     env_file: ./back-server/.env.dev
     ports:
       - "8080:8080"
