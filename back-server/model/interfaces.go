@@ -37,16 +37,6 @@ type TradeService interface {
 	CalIncomeRate(ctx context.Context, uid string, cryptoName string, strategyID int) (*Income, error)
 }
 
-type CronService interface {
-	AddCron(ctx context.Context, cb *Cron) (*Cron, error)
-	GetCron(ctx context.Context, uid, cronID string) (*Cron, error)
-	GetCrons(ctx context.Context, uid string) (*[]Cron, error)
-	UpdateCron(ctx context.Context, cb *Cron) error
-	DeleteCron(ctx context.Context, uid string, cronID string) error
-	AddCronFunc(ctx context.Context, cb *Cron) error
-	RemoveCronFunc(ctx context.Context, cronID string) error
-}
-
 type AutoTradeService interface {
 	AddAutoTrade(ctx context.Context, uid, cryptoName string, strategyID int) error
 	DeleteAutoTrade(ctx context.Context, uid, cryptoName string, strategyID int) error
@@ -85,16 +75,6 @@ type TradeRepository interface {
 	GetOrderLogs(ctx context.Context, uid, cryptoName string, strategyID int) (*[]Order, error)
 }
 
-type CronRepository interface {
-	AddCron(ctx context.Context, cb *Cron, currencyID int) error
-	GetCron(ctx context.Context, uid string, cronID string) (*Cron, error)
-	GetCrons(ctx context.Context, uid string) (*[]Cron, error)
-	UpdateCron(ctx context.Context, cb *Cron, currencyID int) error
-	DeleteCron(ctx context.Context, userID string, cronID string) error
-	GetCronID(ctx context.Context, uid, cryptoName, timePattern string) (string, error)
-	GetAllCrons() (*[]Cron, error)
-}
-
 type AutoTradeRepository interface {
 	AddAutoTrade(ctx context.Context, uid string, int, strategyID int) error
 	DeleteAutoTrade(ctx context.Context, uid string, int, strategyID int) error
@@ -108,4 +88,14 @@ type CronJobManager interface {
 	GetCronJob(ctx context.Context, cronID string) (int, error)
 	DeleteCronJob(ctx context.Context, cronID string) error
 	GetAndDeleteCronJob(ctx context.Context, cronID string) (int, error)
+}
+
+type BinanceTradeService interface {
+	SaveOrder(ctx context.Context, uid string, symbol string, action string, avgCost float64, qty float64) (BinanceOrder, error)
+	GetOrders(ctx context.Context, uid string, symbol string) (*[]BinanceOrder, error)
+}
+
+type BinanceTradeRepository interface {
+	SaveOrder(ctx context.Context, order *BinanceOrder) error
+	GetOrders(ctx context.Context, uid string, symbol string) (*[]BinanceOrder, error)
 }

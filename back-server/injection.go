@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"crypto-auto-invest/handler"
 	"crypto-auto-invest/model"
 	"crypto-auto-invest/repository"
@@ -26,11 +25,10 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	 */
 	userRepository := repository.NewUserRepository(d.DB)
 	tokenRepository := repository.NewTokenRepository(d.RedisClient)
-	cronJobManager := repository.NewCronJobManager(d.RedisClient)
 	walletRepository := repository.NewWalletRepository(d.DB)
 	tradeRepository := repository.NewTradeRepository(d.DB)
-	cronRepository := repository.NewCronRepository(d.DB)
 	autoTradeRepository := repository.NewAutoTradeRepository(d.DB)
+	binanceTradeRepository := repository.NewBinanceTradeRepository(d.DB)
 
 	/*
 	 * service layer
@@ -68,31 +66,7 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	cron := cron.New()
 
 	cron.Start()
-	cronService := services.NewCronService(&services.CSConfig{
-		CronRepository:   cronRepository,
-		UserRepository:   userRepository,
-		WalletRepository: walletRepository,
-		TradeService:     tradeService,
-		CronJobManager:   cronJobManager,
-		Cron:             cron,
-	})
 
-	jobs, err := cronRepository.GetAllCrons()
-
-	if err != nil {
-		log.Fatalf("Fail to init cron job manager: %s\n", err)
-	}
-
-	log.Printf("Setting %v cron jobs for system\n", len(*jobs))
-	for _, job := range *jobs {
-		job := job
-		ctx := context.TODO()
-		cronService.AddCronFunc(ctx, &job)
-	}
-
-	if err != nil {
-		log.Fatalf("Fail to load max rate on auto trade")
-	}
 	autoTradeService := services.NewAutoTradeService(&services.ATSConifg{
 		WalletRepository:    walletRepository,
 		UserRepository:      userRepository,
@@ -152,6 +126,12 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		RefreshExpirationSecs: refreshExp,
 	})
 
+	binanceTradeService := services.NewBinanceTradeService(&services.BTSConfig{
+		BinanceTradeRepository: binanceTradeRepository,
+		UserRepository:         userRepository,
+		Webhook:                infoWebhook,
+	})
+
 	// initialize gin.Engine
 	router := gin.Default()
 
@@ -167,17 +147,17 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	serviceToken := os.Getenv("HEADER_SECRET")
 
 	handler.NewHandler(&handler.Config{
-		R:                router,
-		UserService:      userService,
-		TokenService:     tokenService,
-		WalletService:    walletService,
-		TradeService:     tradeService,
-		CronService:      cronService,
-		AutoTradeService: autoTradeService,
-		BaseURL:          baseURL,
-		TimeoutDuration:  time.Duration(time.Duration(ht) * time.Second),
-		ServiceToken:     serviceToken,
-		MockTradeService: mockTradeService,
+		R:                   router,
+		UserService:         userService,
+		TokenService:        tokenService,
+		WalletService:       walletService,
+		TradeService:        tradeService,
+		AutoTradeService:    autoTradeService,
+		BaseURL:             baseURL,
+		TimeoutDuration:     time.Duration(time.Duration(ht) * time.Second),
+		ServiceToken:        serviceToken,
+		MockTradeService:    mockTradeService,
+		BinanceTradeService: binanceTradeService,
 	})
 
 	return router, nil
