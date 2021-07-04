@@ -86,6 +86,18 @@ CREATE TABLE IF NOT EXISTS charge_log(
   FOREIGN KEY (`crypto_id`) REFERENCES `crypto_name`(`id`)
 );
 
+CREATE TABLE IF NOT EXISTS binance_orders(
+  `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `uid` VARCHAR(100) NOT NULL,
+  `symbol` VARCHAR(20) NOT NULL,
+  `action` VARCHAR(10),
+  `amount` FLOAT NOT NULL,
+  `price` FLOAT NOT NULL,
+  `timestamp` TIMESTAMP NOT NULL,
+
+  FOREIGN KEY (`uid`) REFERENCES `users` (`uid`)
+);
+
 
 -- view for wallets
 CREATE VIEW `wallets_view` AS

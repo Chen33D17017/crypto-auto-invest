@@ -11,44 +11,45 @@ import (
 )
 
 type Handler struct {
-	UserService      model.UserService
-	TokenService     model.TokenService
-	WalletService    model.WalletService
-	TradeService     model.TradeService
-	CronService      model.CronService
-	AutoTradeService model.AutoTradeService
-	MockTradeService model.TradeService
+	UserService         model.UserService
+	TokenService        model.TokenService
+	WalletService       model.WalletService
+	TradeService        model.TradeService
+	AutoTradeService    model.AutoTradeService
+	MockTradeService    model.TradeService
+	BinanceTradeService model.BinanceTradeService
 }
 
 type Config struct {
-	R                *gin.Engine
-	UserService      model.UserService
-	TokenService     model.TokenService
-	WalletService    model.WalletService
-	TradeService     model.TradeService
-	CronService      model.CronService
-	AutoTradeService model.AutoTradeService
-	BaseURL          string
-	TimeoutDuration  time.Duration
-	ServiceToken     string
-	MockTradeService model.TradeService
+	R                   *gin.Engine
+	UserService         model.UserService
+	TokenService        model.TokenService
+	WalletService       model.WalletService
+	TradeService        model.TradeService
+	AutoTradeService    model.AutoTradeService
+	BaseURL             string
+	TimeoutDuration     time.Duration
+	ServiceToken        string
+	MockTradeService    model.TradeService
+	BinanceTradeService model.BinanceTradeService
 }
 
 func NewHandler(c *Config) {
 	h := &Handler{
-		UserService:      c.UserService,
-		TokenService:     c.TokenService,
-		WalletService:    c.WalletService,
-		TradeService:     c.TradeService,
-		CronService:      c.CronService,
-		AutoTradeService: c.AutoTradeService,
-		MockTradeService: c.MockTradeService,
+		UserService:         c.UserService,
+		TokenService:        c.TokenService,
+		WalletService:       c.WalletService,
+		TradeService:        c.TradeService,
+		AutoTradeService:    c.AutoTradeService,
+		MockTradeService:    c.MockTradeService,
+		BinanceTradeService: c.BinanceTradeService,
 	}
 	g_user := c.R.Group(c.BaseURL)
 	g_price := c.R.Group("/api/bitbank")
 	g_crypto := c.R.Group("/api/crypto")
 	g_admin := c.R.Group("/api/admin")
 	g_mock := c.R.Group("/api/mock")
+	g_binance := c.R.Group("/api/binance")
 
 	if gin.Mode() != gin.TestMode {
 		g_user.Use(middleware.Timeout(c.TimeoutDuration, apperrors.NewServiceUnavailable()))
@@ -61,11 +62,6 @@ func NewHandler(c *Config) {
 		g_user.GET("/wallets", middleware.AuthUser(h.TokenService), h.GetWallets)
 		g_user.POST("/charge", middleware.AuthUser(h.TokenService), h.Charge)
 		g_user.GET("/charge", middleware.AuthUser(h.TokenService), h.GetChargeLogs)
-		g_user.POST("/cron", middleware.AuthUser(h.TokenService), h.AddCron)
-		g_user.GET("/cron", middleware.AuthUser(h.TokenService), h.GetCron)
-		g_user.GET("/crons", middleware.AuthUser(h.TokenService), h.GetCrons)
-		g_user.PUT("/cron", middleware.AuthUser(h.TokenService), h.UpdateCron)
-		g_user.DELETE("/cron", middleware.AuthUser(h.TokenService), h.DeleteCron)
 
 		g_price.GET("/assets", middleware.AuthUser(h.TokenService), h.GetAssets)
 		g_price.GET("/trade", middleware.AuthUser(h.TokenService), h.GetTrade)
@@ -100,6 +96,8 @@ func NewHandler(c *Config) {
 	g_admin.POST("/order", middleware.AuthService(c.ServiceToken), h.SaveOrder)
 	g_mock.POST("/order", middleware.AuthService(c.ServiceToken), h.MockSaveOrder)
 	g_admin.POST("/cancel", middleware.AuthService(c.ServiceToken), h.CancelOrder)
+
+	g_binance.POST("/save", h.BinanceSave)
 }
 
 func (h *Handler) Image(c *gin.Context) {
