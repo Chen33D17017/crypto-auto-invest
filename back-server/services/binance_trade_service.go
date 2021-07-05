@@ -62,8 +62,6 @@ func (s *binanceTradeService) SaveOrder(ctx context.Context, uid string, symbol 
 			amount -= order.Amount
 			cost -= order.Amount * order.Price
 		}
-		cost = normalizeFloat(cost)
-		amount = normalizeFloat(amount)
 	}
 
 	incomeRate := (amount*avgCost - cost) / cost * 100
